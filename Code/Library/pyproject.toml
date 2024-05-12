@@ -1,3 +1,25 @@
 [build-system]
-requies = ['hatchling']
-build-backend = ["hatchling.build"]
+requires = ['hatchling']
+build-backend = "hatchling.build"
+
+[project]
+name = "Warwick_PMSC_skylab"
+version = "0.0.1"
+authors = [
+    {name = "Simon Coolsaet", email = "Simon.Coolsaet@warwick.ac.uk"},
+    {name = "Kyle Berwick", email = "Kyle.Berwick@warwick.ac.uk"},
+    {name = "Gullveig Liang", email = "Gullveig.Liang@warwick.ac.uk"},
+    {name = "Tanya Sanjeev", email = "Tanya.Sanjeev@warwick.ac.uk"},
+    {name = "Leixin Xu", email = "Leixin.Xu@warwick.ac.uk"},
+]
+description = "Warwick PMSC Group Project (Skylab Team)"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/gulldhhhhh/ES98B-Skylab"
