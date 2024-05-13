@@ -1,21 +1,21 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[3]:
+# In[2]:
 
 
 import sys
 import warwick_pmsc_skylab.Simulator
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QLineEdit, QRadioButton, QGroupBox, QHBoxLayout, QDateTimeEdit, QMainWindow, QCheckBox
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QLineEdit, QRadioButton, QGroupBox, QHBoxLayout, QDateTimeEdit, QMainWindow, QCheckBox, QButtonGroup
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 
-# In[4]:
+# In[3]:
 
 
 class Window_2D(QWidget):
@@ -307,9 +307,12 @@ class Window_3D(QWidget):
         radar_layout = QVBoxLayout()
 
         self.radarcomplexity = QHBoxLayout()
+        self.complexity_buttongroup = QButtonGroup()
         self.radiosimple = QRadioButton("Simple Radar")
         self.radiocomplex = QRadioButton("Complex Radar")
         self.radiosimple.setChecked(True)
+        self.complexity_buttongroup.addButton(self.radiosimple)
+        self.complexity_buttongroup.addButton(self.radiocomplex)
         self.radarcomplexity.addWidget(self.radiosimple)
         self.radarcomplexity.addWidget(self.radiocomplex)
 
@@ -319,9 +322,12 @@ class Window_3D(QWidget):
         self.radarparam_layout.addWidget(self.radarparam_text)
 
         self.readingtype = QHBoxLayout()
+        self.read_buttongroup = QButtonGroup()
         self.readingxyz = QRadioButton("Relative XYZ Measurements")
-        self.readingdistalt = QRadioButton("Distance & Altitude Measurements")
+        self.readingdistalt = QRadioButton("Distance-Altitude Measurements")
         self.readingxyz.setChecked(True)
+        self.read_buttongroup.addButton(self.readingxyz)
+        self.read_buttongroup.addButton(self.readingdistalt)
         self.readingtype.addWidget(self.readingxyz)
         self.readingtype.addWidget(self.readingdistalt)
 
@@ -397,7 +403,7 @@ class Window_3D(QWidget):
         self.close()
     
     def set_initpos(self):
-        input_pos = np.sqrt(np.array(warwick_pmsc_skylab.Simulator.random_split()) * (warwick_pmsc_skylab.radius_equatorial/1000 + 408.0)**2)
+        input_pos = np.round(np.sqrt(np.array(warwick_pmsc_skylab.Simulator.random_split()) * (warwick_pmsc_skylab.radius_equatorial/1000 + 408.0)**2), decimals=3)
         self.initpos_text.setText(f"{input_pos.tolist()}")
 
     def tangent_velocity(self):
@@ -548,13 +554,19 @@ class VisualizationWindow(QMainWindow):
         plt.axis('off')
         #plt.close()
 
-def run_GUI():
+def run_GUI(window_class=MainWindow):
     if __name__ == '__main__':
         app = 0
         app = QApplication(sys.argv)
-        w = MainWindow()
+        w = window_class()
         w.show()
         sys.exit(app.exec_())
+
+
+# In[4]:
+
+
+run_GUI()
 
 
 # In[ ]:
