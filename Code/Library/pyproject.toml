@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "Warwick_PMSC_skylab"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
     {name = "Simon Coolsaet", email = "Simon.Coolsaet@warwick.ac.uk"},
     {name = "Kyle Berwick", email = "Kyle.Berwick@warwick.ac.uk"},
