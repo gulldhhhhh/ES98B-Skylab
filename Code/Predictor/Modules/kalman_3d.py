@@ -23,8 +23,8 @@ H = np.array([
     [0, 0, 1, 0, 0, 0],
     [0, 0, 0, 0, 1, 0]
 ])
-R = np.diag([100, 100, 100])  # Measurement noise covariance
-Q = np.diag([0.1, 0, 0.1, 0, 0.1, 0]) * 0  # Process noise covariance
+R = np.diag([8.5, 8.5, 8.5])  # Measurement noise covariance
+Q = np.diag([0.1, 0, 0.1, 0, 0.1, 0]) * 0.001  # Process noise covariance
 P = np.diag([10, 1, 10, 1, 10, 1])  # Initial state covariance
 
 def kalman_filter_3d(data_test, F, H, Q, R, P):

@@ -10,9 +10,9 @@ import matplotlib.pyplot as plt
 # dt = 1
 F = np.array([[1, dt, 0, 0], [0, 1, 0, 0], [0, 0, 1, dt], [0, 0, 0, 1]]) # State transition matrix
 H = np.array([[1, 0, 0, 0], [0, 0, 1, 0]]) # Measurement matrix
-R = np.diag([100, 100]) # Assuming measurement noise is large
+R = np.diag([8, 8]) # Assuming measurement noise is large
 Q = np.diag([0.1, 0.1, 0.1, 0.1]) * 0.001 # Assuming process noise is small
-P = np.diag([100, 1, 100, 1]) # Initial state covariance
+P = np.diag([10, 1, 10, 1]) # Initial state covariance
 
 def kalman_filter(data_test, F, H, Q, R, P, dt):
     """

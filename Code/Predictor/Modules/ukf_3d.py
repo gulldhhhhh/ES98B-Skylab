@@ -41,7 +41,7 @@ def ukf_3d(data_test, dt):
     points = MerweScaledSigmaPoints(6, alpha=0.1, beta=2., kappa=1.)
     ukf = UKF(dim_x=6, dim_z=3, fx=state_transition_function, hx=measurement_function, dt=dt, points=points)
     ukf.x = np.array([data_test.iloc[0]['x'], 0, data_test.iloc[0]['y'], 0, data_test.iloc[0]['z'], 0])  # initial state
-    ukf.R = np.diag([100, 100, 100])  # Measurement noise: assuming measurement noise is large
+    ukf.R = np.diag([85, 85, 85])  # Measurement noise: assuming measurement noise is large
     ukf.Q = np.eye(6) * 0.001  # Process noise: assuming process noise is small
 
     xs, zs = [], []

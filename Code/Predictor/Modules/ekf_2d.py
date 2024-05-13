@@ -15,7 +15,7 @@ x_est[:, 0] = [data_test.iloc[0]['x'], 0, data_test.iloc[0]['y'], 0]
 
 P = np.diag([100, 10, 100, 10])
 Q = np.diag([0.1, 0.1, 0.1, 0.1]) * 0.001
-R = np.diag([100, 100])
+R = np.diag([10, 10])
 
 def f(x, dt):
     """ Simplified motion model """
