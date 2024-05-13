@@ -548,10 +548,10 @@ class VisualizationWindow(QMainWindow):
         plt.axis('off')
         #plt.close()
 
-def run_GUI():
+def run_GUI(window_class=MainWindow):
     app = 0
     app = QApplication(sys.argv)
-    w = MainWindow()
+    w = window_class()
     w.show()
     sys.exit(app.exec_())
 
