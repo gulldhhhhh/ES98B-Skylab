@@ -14,4 +14,5 @@ What needs to be improved:
 - plotting: Earth simulation where easy for visual indication in crashing point
 
 Sample usage of module:
+
 run_filter('ekf', '2d', visualize=True, dt=1.0)
