@@ -341,7 +341,7 @@ def ukf_3d(data_test, dt):
     return xs, Ps
 
 
-def plot_trajectory_3D(data_real, estimated_states, Ps):
+def plot_trajectory_3D(data_real, filter_type, estimated_states, Ps):
     """
     Plots the 3D satellite trajectory and a heat map of the estimated positions.
 
@@ -379,7 +379,7 @@ def plot_trajectory_3D(data_real, estimated_states, Ps):
     ax.contourf(x_grid, y_grid, z_values, rv.pdf(pos), levels=50, cmap='viridis', offset=z_last)
 
     # Setting labels and title
-    
+    ax.set_title('%f Estimated Satellite Trajectory with Heat Map' % filter_type)
     ax.set_xlabel('X Position')
     ax.set_ylabel('Y Position')
     ax.set_zlabel('Z Position')
@@ -390,7 +390,7 @@ def plot_trajectory_3D(data_real, estimated_states, Ps):
     # Show the plot
     plt.show()
 
-def plot_trajectory_2D(data_test, estimated_states, covariances):
+def plot_trajectory_2D(data_test, filter_type, estimated_states, covariances):
     # Extract positions and their uncertainties from the estimated states and covariances
     x_positions = estimated_states[0, :]
     y_positions = estimated_states[2, :]
@@ -405,7 +405,7 @@ def plot_trajectory_2D(data_test, estimated_states, covariances):
     ax.errorbar(x_positions[1:], y_positions[1:], xerr=x_errors, yerr=y_errors, color='red', ecolor='lightgray', elinewidth=3, capsize=0, label='Estimated Positions')
     
     # Add titles and labels
-    ax.set_title('Estimated Satellite Trajectory with Error Bars')
+    ax.set_title('%f Estimated Satellite Trajectory with Error Bars'% filter_type)
     ax.set_xlabel('X Position')
     ax.set_ylabel('Y Position')
     ax.legend()
@@ -444,7 +444,7 @@ def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XY
         predicted_cov = np.asarray(cov_est)
         if visualize:
             # Visualization logic based on filter type and dimension
-            plot_trajectory_2D(data_test, predicted_positions, predicted_cov)
+            plot_trajectory_2D(data_test, filter_type, predicted_positions, predicted_cov)
        
             
         return predicted_positions, predicted_cov
@@ -469,7 +469,7 @@ def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XY
         predicted_positions, predicted_cov = kalman_filter(data_test, F, H, Q, R, P, dt)
         if visualize:
             # Visualization logic based on filter type and dimension
-            plot_trajectory_2D(data_test, predicted_positions, predicted_cov)
+            plot_trajectory_2D(data_test, filter_type, predicted_positions, predicted_cov)
        
             
         return predicted_positions, predicted_cov
@@ -522,7 +522,7 @@ def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XY
         
         if visualize:
             # Visualization logic based on filter type and dimension
-            plot_trajectory_3D(data_test, predicted_positions, predicted_cov)
+            plot_trajectory_3D(data_test, filter_type, predicted_positions, predicted_cov)
         return predicted_positions, predicted_cov
 
 
@@ -553,7 +553,7 @@ def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XY
         predicted_positions, predicted_cov = ukf_3d(data_test, dt)
         if visualize:
             # Visualization logic based on filter type and dimension
-            plot_trajectory_3D(data_test, predicted_positions, predicted_cov)
+            plot_trajectory_3D(data_test, filter_type, predicted_positions, predicted_cov)
         return predicted_positions, predicted_cov
 
     
