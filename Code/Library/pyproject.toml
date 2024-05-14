@@ -1,5 +1,5 @@
 [build-system]
-requires = ['hatchling']
+requires = ['hatchling', 'numpy', 'matplotlib', 'scipy','nrlmsise00','PyQt5','pandas','filterpy']
 build-backend = "hatchling.build"
 
 [project]
