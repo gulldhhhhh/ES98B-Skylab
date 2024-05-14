@@ -521,7 +521,7 @@ class Window_3D(QWidget):
         maxIter = eval(self.maxiter_text.text())
         simple_radar = self.radiosimple.isChecked()
 
-        poshist, althist = warwick_pmsc_skylab.Simulator.Simulator(self.satellite_parameters, self.radar_parameters, dt = dt, maxIter = maxIter, solver = 'RK45', simple_solver = False, simple_radar = simple_radar, rotating_earth=self.rotEarth.isChecked())
+        poshist, althist = warwick_pmsc_skylab.Simulator.Simulator(self.satellite_parameters, self.radar_parameters, dt = dt, maxIter = maxIter, solver = 'RK45', simple_solver = False, simple_radar = simple_radar, rotating_earth=self.rot_earth_flag.isChecked())
 
         self.run_predictor()
     
