@@ -413,7 +413,7 @@ def plot_trajectory_2D(data_test, estimated_states, covariances):
     plt.show()
 
 # Main function to run chosen filter on input data
-def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XYZ', reading_interval=10, sat_initpos=[0,0,0], initial_time=None, multilateration_number=3, fixed_earth=True):
+def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XYZ', reading_interval=10, sat_initpos=[0,0,0], initial_time=None, multilateration_number=3, fixed_earth=True, radar_noise=0.05, process_noise=0.01):
     if filter_type == 'ekf' and dimension == '2d':
         reading_columns = ['x', 'y']
         position_columns = ['x', 'y']
@@ -457,9 +457,9 @@ def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XY
         # Constants
         F = np.array([[1, dt, 0, 0], [0, 1, 0, 0], [0, 0, 1, dt], [0, 0, 0, 1]]) # State transition matrix
         H = np.array([[1, 0, 0, 0], [0, 0, 1, 0]]) # Measurement matrix
-        R = np.diag([8, 8]) # Assuming measurement noise is large
-        Q = np.diag([0.1, 0.1, 0.1, 0.1]) * 0.001 # Assuming process noise is small
-        P = np.diag([10, 1, 10, 1]) # Initial state covariance
+        R = np.diag([radar_noise, radar_noise]) # Assuming measurement noise is large
+        Q = np.diag([process_noise, process_noise, process_noise, process_noise]) * 0.001 # Assuming process noise is small
+        P = np.diag([radar_noise, 0, radar_noise, 0]) # Initial state covariance
 
         predicted_positions, predicted_cov = kalman_filter(data_test, F, H, Q, R, P, dt)
 
@@ -496,20 +496,20 @@ def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XY
         # Settings
         F = np.array([
             [1, dt, 0,  0,  0,  0],
-            [0,  1 - drag * dt / M_earth, 0,  0,  0,  0],
+            [0,  1, 0,  0,  0,  0],
             [0,  0, 1, dt,  0,  0],
-            [0,  0, 0,  1 - drag * dt / M_earth,  0,  0],
+            [0,  0, 0,  1,  0,  0],
             [0,  0, 0,  0,  1, dt],
-            [0,  0, 0,  0,  0,  1- drag * dt / M_earth]
+            [0,  0, 0,  0,  0,  1]
         ])
         H = np.array([
             [1, 0, 0, 0, 0, 0],
             [0, 0, 1, 0, 0, 0],
             [0, 0, 0, 0, 1, 0]
         ])
-        R = np.diag([8.5, 8.5, 8.5])  # Measurement noise covariance
-        Q = np.diag([0.1, 0, 0.1, 0, 0.1, 0]) * 0.001  # Process noise covariance
-        P = np.diag([10, 1, 10, 1, 10, 1])  # Initial state covariance
+        R = np.diag([radar_noise, radar_noise, radar_noise])  # Measurement noise covariance
+        Q = np.diag([process_noise, 0, process_noise, 0, process_noise, 0]) * 0.001  # Process noise covariance
+        P = np.diag([radar_noise, 0, radar_noise, 0, radar_noise, 0])  # Initial state covariance
 
         predicted_positions, predicted_cov = kalman_filter_3d(data_test, F, H, Q, R, P)
 
