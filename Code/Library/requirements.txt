@@ -8,3 +8,4 @@ nrlmsise00
 sys
 PyQt5
 pandas
+filterpy

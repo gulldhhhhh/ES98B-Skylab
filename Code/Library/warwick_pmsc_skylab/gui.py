@@ -1,21 +1,22 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[2]:
+# In[18]:
 
 
 import sys
 import warwick_pmsc_skylab.Simulator
+import warwick_pmsc_skylab.Predictor.Kalman
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QLineEdit, QRadioButton, QGroupBox, QHBoxLayout, QDateTimeEdit, QMainWindow, QCheckBox, QButtonGroup
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QLineEdit, QRadioButton, QGroupBox, QHBoxLayout, QDateTimeEdit, QMainWindow, QCheckBox, QButtonGroup, QTextEdit
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 
-# In[3]:
+# In[15]:
 
 
 class Window_2D(QWidget):
@@ -113,8 +114,11 @@ class Window_2D(QWidget):
         radar_layout = QVBoxLayout()
 
         self.radarcomplexity = QHBoxLayout()
+        self.radiobbox = QButtonGroup()
         self.radiosimple = QRadioButton("Simple Radar")
         self.radiocomplex = QRadioButton("Complex Radar")
+        self.radiobbox.addButton(self.radiosimple)
+        self.radiobbox.addButton(self.radiocomplex)
         self.radiosimple.setChecked(True)
         self.radarcomplexity.addWidget(self.radiosimple)
         self.radarcomplexity.addWidget(self.radiocomplex)
@@ -167,6 +171,34 @@ class Window_2D(QWidget):
         simulatorbox.setLayout(simulator_layout)
         
         layout.addWidget(simulatorbox)
+
+        #Predictor Parameters
+
+        predictorbox = QGroupBox("Predictor Parameters")
+        predictor_layout = QVBoxLayout()
+
+        self.filtertype_layout = QHBoxLayout()
+        self.filtertype_bbox = QButtonGroup()
+        self.filtertype_ekf = QRadioButton("Extended Kalman Filter")
+        self.filtertype_kalman = QRadioButton("Linear Kalman Filter")
+        self.filtertype_ekf.setChecked(True)
+        self.filtertype_bbox.addButton(self.filtertype_ekf)
+        self.filtertype_bbox.addButton(self.filtertype_kalman)
+        self.filtertype_layout.addWidget(self.filtertype_ekf)
+        self.filtertype_layout.addWidget(self.filtertype_kalman)
+
+        self.pred_dt_layout = QHBoxLayout()
+        self.pred_dt_layout.addWidget(QLabel("Kalman dt:"))
+        self.pred_dt_text = QLineEdit("1.0")
+        self.pred_dt_layout.addWidget(self.pred_dt_text)
+
+        predictor_layout.addLayout(self.filtertype_layout)
+        predictor_layout.addLayout(self.pred_dt_layout)
+        predictorbox.setLayout(predictor_layout)
+
+
+        layout.addWidget(predictorbox)
+
 
         button_layout = QHBoxLayout()
         self.button_back = QPushButton("Back")
@@ -233,11 +265,23 @@ class Window_2D(QWidget):
         simple_solver = self.simple_solver.isChecked()
         simple_radar = self.radiosimple.isChecked()
 
-        poshist, althist = warwick_pmsc_skylab.Simulator.Simulator_2D(ellipse_parameters, satellite_parameters, radar_parameters, dt = dt, maxIter = maxIter, solver = 'RK45', simple_solver = simple_solver, simple_radar = simple_radar)
+        self.poshist, self.althist = warwick_pmsc_skylab.Simulator.Simulator_2D(ellipse_parameters, satellite_parameters, radar_parameters, dt = dt, maxIter = maxIter, solver = 'RK45', simple_solver = simple_solver, simple_radar = simple_radar)
 
-        self.Handoff_2D(poshist, althist)
+        #self.Handoff_2D(self.poshist, self.althist, None, None)
+        self.run_predictor()
+    
+    def run_predictor(self):
+        print("reached!")
+        if self.filtertype_ekf.isChecked():
+            filter_type = 'ekf'
+        else:
+            filter_type = 'kalman'
+        
 
-    def Handoff_2D(self, poshist, althist):
+        self.predicted_positions, self.predicted_cov = warwick_pmsc_skylab.Predictor.Kalman.run_filter(filter_type, '2d', dt = eval(self.pred_dt_text.text()))
+        self.Handoff_2D(self.poshist, self.althist, self.predicted_positions, self.predicted_cov)
+
+    def Handoff_2D(self, poshist, althist, predicted_positions, predicted_cov):
         self.w = VisualizationWindow('2D', poshist, althist)
         self.w.show()
         self.close()
@@ -385,6 +429,31 @@ class Window_3D(QWidget):
         
         layout.addWidget(simulatorbox)
 
+        predictorbox = QGroupBox("Predictor Parameters")
+        predictor_layout = QVBoxLayout()
+
+        self.filtertype_layout = QHBoxLayout()
+        self.filtertype_bbox = QButtonGroup()
+        self.filtertype_ukf = QRadioButton("Unscented Kalman Filter")
+        self.filtertype_kalman = QRadioButton("Linear Kalman Filter")
+        self.filtertype_ukf.setChecked(True)
+        self.filtertype_bbox.addButton(self.filtertype_ukf)
+        self.filtertype_bbox.addButton(self.filtertype_kalman)
+        self.filtertype_layout.addWidget(self.filtertype_ukf)
+        self.filtertype_layout.addWidget(self.filtertype_kalman)
+
+        self.pred_dt_layout = QHBoxLayout()
+        self.pred_dt_layout.addWidget(QLabel("Kalman dt:"))
+        self.pred_dt_text = QLineEdit("1.0")
+        self.pred_dt_layout.addWidget(self.pred_dt_text)
+
+        predictor_layout.addLayout(self.filtertype_layout)
+        predictor_layout.addLayout(self.pred_dt_layout)
+        predictorbox.setLayout(predictor_layout)
+
+
+        layout.addWidget(predictorbox)
+
         button_layout = QHBoxLayout()
         self.button_back = QPushButton("Back")
         self.button_back.clicked.connect(self.go_back)
@@ -414,7 +483,7 @@ class Window_3D(QWidget):
     
     def run_simulator(self):
 
-        satellite_parameters = {
+        self.satellite_parameters = {
             'mass': eval(self.mass_text.text()),
             'drag coefficient': eval(self.drag_text.text()),
             'initial position': np.array(eval(self.initpos_text.text())).tolist(),
@@ -427,7 +496,7 @@ class Window_3D(QWidget):
             rtype = 'XYZ'
         else:
             rtype = 'distalt'
-        radar_parameters = {
+        self.radar_parameters = {
             'radar parameter': eval(self.radarparam_text.text()),
             'reading type': rtype,
             'noise level (%)': eval(self.noiselevel_text.text()),
@@ -438,14 +507,23 @@ class Window_3D(QWidget):
         maxIter = eval(self.maxiter_text.text())
         simple_radar = self.radiosimple.isChecked()
 
-        poshist, althist = warwick_pmsc_skylab.Simulator.Simulator(satellite_parameters, radar_parameters, dt = dt, maxIter = maxIter, solver = 'RK45', simple_solver = False, simple_radar = simple_radar)
+        poshist, althist = warwick_pmsc_skylab.Simulator.Simulator(self.satellite_parameters, self.radar_parameters, dt = dt, maxIter = maxIter, solver = 'RK45', simple_solver = False, simple_radar = simple_radar, rotating_earth=self.rotEarth.isChecked())
 
-        #PREDICTOR TO BE ADDED HERE
-
-        self.Handoff_3D(poshist, althist)
+        self.run_predictor()
     
-    def Handoff_3D(self, poshist, althist):
-        self.w = VisualizationWindow('3D', poshist, althist)
+    def run_predictor(self):
+        print("reached!")
+        if self.filtertype_ukf.isChecked():
+            filter_type = 'ukf'
+        else:
+            filter_type = 'kalman'
+
+        fixed_earth = not self.rot_earth_flag.isChecked()
+        self.predicted_positions, self.predicted_cov = warwick_pmsc_skylab.Predictor.Kalman.run_filter(filter_type, '3d', dt = eval(self.pred_dt_text.text()),reading_type=self.radar_parameters['reading_type'],sat_posinit=self.satellite_parameters['initial position'], initial_time=self.satellite_parameters['time'], multilateration_number=3, fixed_earth = fixed_earth)
+        self.Handoff_3D(self.poshist, self.althist, self.predicted_positions, self.predicted_cov)
+
+    def Handoff_3D(self, poshist, althist, predicted_positions, predicted_cov):
+        self.w = VisualizationWindow('3D', poshist, althist, predicted_positions, predicted_cov)
         self.w.show()
         self.close()
 
@@ -459,17 +537,33 @@ class MainWindow(QMainWindow):
         
         layout = QVBoxLayout()
 
+        self.intro = QLabel("Welcome to the Warwick Predictive Modelling and Scientific Computing ES98B Skylab Group Project! \nPlease choose which model type you'd like to use:")
+        layout.addWidget(self.intro)
+
+        first_layout = QHBoxLayout()
         self.button_2D = QPushButton("2D Version")
         self.button_2D.clicked.connect(self.show_2D_window)
         self.button_3D = QPushButton("3D Version")
         self.button_3D.clicked.connect(self.show_3D_window)
-        
-        layout.addWidget(self.button_2D)
-        layout.addWidget(self.button_3D)
+
+        first_layout.addWidget(self.button_2D)
+        first_layout.addWidget(self.button_3D)
+
+        second_layout = QHBoxLayout()
+        self.exitButton = QPushButton("Exit")
+        self.exitButton.clicked.connect(self.exit)
+        second_layout.addWidget(self.exitButton)
+
+        layout.addLayout(first_layout)
+        layout.addLayout(second_layout)
 
         widget = QWidget()
         widget.setLayout(layout)
         self.setCentralWidget(widget)
+    
+    def exit(self):
+        QApplication.quit()
+        self.hide()
     
     def show_2D_window(self, checked):
         self.w = Window_2D()
@@ -510,23 +604,24 @@ class VisualizationWindow(QMainWindow):
             self.ax = self.figure.add_subplot(111)
             self.draw_2d_plot()
 
-    def draw_plot_2d(self):
-        sim_data = pd.read_csv('simulator_2D.csv')
-        pred_data = pd.read_csv('predictor_2D.csv')
+    def draw_2d_plot(self):
+        pass
+        # sim_data = pd.read_csv('simulator_2D.csv')
+        # pred_data = pd.read_csv('predictor_2D.csv')
 
-        earth = plt.Circle((0, 0), 1, color='blue', label='Earth')
-        self.ax.add_patch(earth)
+        # earth = plt.Circle((0, 0), 1, color='blue', label='Earth')
+        # self.ax.add_patch(earth)
 
-        self.ax.plot(sim_data['x'], sim_data['y'], 'ro-', label='Satellite Path')
+        # self.ax.plot(sim_data['x'], sim_data['y'], 'ro-', label='Satellite Path')
         
-        self.ax.plot(pred_data['x'], pred_data['y'], 'go--', label='Predicted Path')
+        # self.ax.plot(pred_data['x'], pred_data['y'], 'go--', label='Predicted Path')
 
-        self.ax.legend()
-        self.ax.grid(True)
-        self.ax.set_xlabel('X Coordinate')
-        self.ax.set_ylabel('Y Coordinate')
-        self.ax.set_title('Satellite Trajectory and Prediction')
-        self.canvas.draw()
+        # self.ax.legend()
+        # self.ax.grid(True)
+        # self.ax.set_xlabel('X Coordinate')
+        # self.ax.set_ylabel('Y Coordinate')
+        # self.ax.set_title('Satellite Trajectory and Prediction')
+        # self.canvas.draw()
 
     def draw_3d_plot(self):
 
@@ -556,16 +651,17 @@ class VisualizationWindow(QMainWindow):
 
 def run_GUI(window_class=MainWindow):
     app = 0
-    print("Test!")
     app = QApplication(sys.argv)
-    print(QApplication.instance())
     w = window_class()
     w.show()
-    print(QApplication.instance())
+
     sys.exit(app.exec_())
 
 
-# In[4]:
+# In[16]:
+
+
+run_GUI()
 
 
 # In[ ]:

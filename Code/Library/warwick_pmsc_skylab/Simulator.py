@@ -8,7 +8,7 @@
 # In[5]:
 
 
-get_ipython().run_line_magic('matplotlib', 'ipympl')
+#get_ipython().run_line_magic('matplotlib', 'ipympl')
 
 import json
 import numpy as np
