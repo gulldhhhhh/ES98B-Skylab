@@ -504,9 +504,9 @@ def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XY
 
         F = np.array([
             [1, dt, 0,  0,  0,  0],
-            [0,  1 , 0,  0,  0,  0],
+            [0,  1, 0,  0,  0,  0],
             [0,  0, 1, dt,  0,  0],
-            [0,  0, 0,  1 ,  0,  0],
+            [0,  0, 0,  1,  0,  0],
             [0,  0, 0,  0,  1, dt],
             [0,  0, 0,  0,  0,  1]
         ])
@@ -515,9 +515,10 @@ def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XY
             [0, 0, 1, 0, 0, 0],
             [0, 0, 0, 0, 1, 0]
         ])
-        R = np.diag([5, 5, 5])  # Measurement noise covariance
-        Q = np.diag([0.1, 0, 0.1, 0, 0.1, 0]) * 0.1  # Process noise covariance
-        P = np.diag([10, 1, 10, 1, 10, 1])  # Initial state covariance
+        R = np.diag([radar_noise, radar_noise, radar_noise])  # Measurement noise covariance
+        Q = np.diag([process_noise, 0, process_noise, 0, process_noise, 0]) * 0.001  # Process noise covariance
+        P = np.diag([radar_noise, 0, radar_noise, 0, radar_noise, 0])  # Initial state covariance
+
         predicted_positions, predicted_cov = kalman_filter_3d(data_test, F, H, Q, R, P)
         if visualize:
             # Visualization logic based on filter type and dimension
