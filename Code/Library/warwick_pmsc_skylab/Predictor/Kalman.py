@@ -1,7 +1,7 @@
 
 import numpy as np
 import pandas as pd
-import warwick_pmsc_skylab.Simulator
+
 from scipy.optimize import least_squares
 import matplotlib.pyplot as plt
 from filterpy.kalman import UnscentedKalmanFilter as UKF, MerweScaledSigmaPoints
@@ -272,15 +272,15 @@ def kalman_filter_3d(data_test, F, H, Q, R, P):
     """
     num_steps = len(data_test)
     state_dimension = 6  # [x, vx, y, vy, z, vz]
-    x_est = np.zeros((state_dimension, num_steps))  # State vector initialization
+    x_est = np.zeros((num_steps,state_dimension))  # State vector initialization
     cov_est = []
     # Initialize state with the first measurement and assume starting velocity is zero
-    x_est[:, 0] = [data_test.iloc[0]['x'], 0, data_test.iloc[0]['y'], 0, data_test.iloc[0]['z'], 0]
+    x_est[0, :] = [data_test.iloc[0]['x'], 0, data_test.iloc[0]['y'], 0, data_test.iloc[0]['z'], 0]
 
     # Kalman Filter Loop
     for i in range(1, num_steps):
         # Predict
-        x_pred = F @ x_est[:, i-1]
+        x_pred = F @ x_est[i-1, :]
         P_pred = F @ P @ F.T + Q
 
         # Measurement update
@@ -288,7 +288,7 @@ def kalman_filter_3d(data_test, F, H, Q, R, P):
         y = z - H @ x_pred  # Residual
         S = H @ P_pred @ H.T + R  # Residual covariance
         K = P_pred @ H.T @ np.linalg.inv(S)  # Kalman gain
-        x_est[:, i] = x_pred + K @ y
+        x_est[i, :] = x_pred + K @ y
         P = (np.eye(state_dimension) - K @ H) @ P_pred
         cov_est.append(P)
     return np.array(x_est), np.asarray(cov_est)
@@ -361,7 +361,7 @@ def plot_trajectory_3D(data_real, estimated_states, Ps):
     # Plotting measured positions
     ax.scatter(data_real['x'], data_real['y'], data_real['z'], c='b', label='Measured Positions', alpha=0.2)
 
-    # Plotting UKF predictions
+    # Plotting predictions
     ax.plot(estimated_states[:, 0], estimated_states[:, 2], estimated_states[:, 4], 'r-', label='Predictions')
 
     # Extract the last state and covariance for the heat map
@@ -418,8 +418,8 @@ def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XY
     if filter_type == 'ekf' and dimension == '2d':
         reading_columns = ['x', 'y']
         position_columns = ['x', 'y']
-        radar_data_path = 'Radar_Readings.csv'
-        radar_positions_path = 'Radar_Positions.csv'
+        radar_data_path = '/content/Radar_Readings_2D.csv'
+        radar_positions_path = '/content/Radar_Positions_2D.csv'
         radar_data = pd.read_csv(radar_data_path, names=reading_columns)
         radar_positions = pd.read_csv(radar_positions_path, names=position_columns)
         data_test = estimate_position_from_radars_2D(radar_positions, radar_data)
@@ -453,8 +453,8 @@ def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XY
         # Prepare and run Kalman Filter 2D
         reading_columns = ['x', 'y']
         position_columns = ['x', 'y']
-        radar_data_path = 'Radar_Readings.csv'
-        radar_positions_path = 'Radar_Positions.csv'
+        radar_data_path = '/content/Radar_Readings_2D.csv'
+        radar_positions_path = '/content/Radar_Positions_2D.csv'
         radar_data = pd.read_csv(radar_data_path, names=reading_columns)
         radar_positions = pd.read_csv(radar_positions_path, names=position_columns)
         data_test = estimate_position_from_radars_2D(radar_positions, radar_data)
@@ -478,8 +478,8 @@ def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XY
     elif filter_type == 'kalman' and dimension == '3d':
         reading_columns = ['x', 'y', 'z']
         position_columns = ['x', 'y', 'z']
-        radar_data_path = 'Radar_Readings.csv'
-        radar_positions_path = 'Radar_Positions.csv'
+        radar_data_path = '/content/Radar_Readings.csv'
+        radar_positions_path = '/content/Radar_Positions.csv'
         radar_data = pd.read_csv(radar_data_path, names=reading_columns)
         radar_positions = pd.read_csv(radar_positions_path, names=position_columns)
         if reading_type == 'XYZ':
@@ -504,9 +504,9 @@ def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XY
 
         F = np.array([
             [1, dt, 0,  0,  0,  0],
-            [0,  1, 0,  0,  0,  0],
+            [0,  1 , 0,  0,  0,  0],
             [0,  0, 1, dt,  0,  0],
-            [0,  0, 0,  1,  0,  0],
+            [0,  0, 0,  1 ,  0,  0],
             [0,  0, 0,  0,  1, dt],
             [0,  0, 0,  0,  0,  1]
         ])
@@ -515,11 +515,11 @@ def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XY
             [0, 0, 1, 0, 0, 0],
             [0, 0, 0, 0, 1, 0]
         ])
-        R = np.diag([radar_noise, radar_noise, radar_noise])  # Measurement noise covariance
-        Q = np.diag([process_noise, 0, process_noise, 0, process_noise, 0]) * 0.001  # Process noise covariance
-        P = np.diag([radar_noise, 0, radar_noise, 0, radar_noise, 0])  # Initial state covariance
-
+        R = np.diag([5, 5, 5])  # Measurement noise covariance
+        Q = np.diag([0.1, 0, 0.1, 0, 0.1, 0]) * 0.1  # Process noise covariance
+        P = np.diag([10, 1, 10, 1, 10, 1])  # Initial state covariance
         predicted_positions, predicted_cov = kalman_filter_3d(data_test, F, H, Q, R, P)
+        
         if visualize:
             # Visualization logic based on filter type and dimension
             plot_trajectory_3D(data_test, predicted_positions, predicted_cov)
@@ -529,8 +529,8 @@ def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XY
     elif filter_type == 'ukf' and dimension == '3d':
         reading_columns = ['x', 'y', 'z']
         position_columns = ['x', 'y', 'z']
-        radar_data_path = 'Radar_Readings.csv'
-        radar_positions_path = 'Radar_Positions.csv'
+        radar_data_path = '/content/Radar_Readings.csv'
+        radar_positions_path = '/content/Radar_Positions.csv'
         radar_data = pd.read_csv(radar_data_path, names=reading_columns)
         radar_positions = pd.read_csv(radar_positions_path, names=position_columns)
         if reading_type == 'XYZ':
@@ -559,7 +559,9 @@ def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XY
     
 
         
-# Example of how to use the backend
-if __name__ == '__main__':
+# # Example of how to use the backend
+# if __name__ == '__main__':
     
-    run_filter('kalman', '2d', visualize=True, dt=1.0)
+#     run_filter('kalman', '3d', visualize=True, dt=1.0)
+# Sample output:
+# predicted position and covariance matrix, image output
