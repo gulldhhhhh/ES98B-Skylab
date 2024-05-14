@@ -661,9 +661,6 @@ def run_GUI(window_class=MainWindow):
 # In[16]:
 
 
-run_GUI()
-
-
 # In[ ]:
 
 
