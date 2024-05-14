@@ -1,7 +1,7 @@
 
 import numpy as np
 import pandas as pd
-import warwick_pmsc_skylab.Simulator
+
 from scipy.optimize import least_squares
 import matplotlib.pyplot as plt
 from filterpy.kalman import UnscentedKalmanFilter as UKF, MerweScaledSigmaPoints
@@ -293,6 +293,7 @@ def kalman_filter_3d(data_test, F, H, Q, R, P):
         cov_est.append(P)
     return np.array(x_est), np.asarray(cov_est)
 
+
 ## UKF 3D
 def state_transition_function(state, dt):
     # Simple motion model: x = vt + x0
@@ -361,11 +362,11 @@ def plot_trajectory_3D(data_real, estimated_states, Ps):
     ax.scatter(data_real['x'], data_real['y'], data_real['z'], c='b', label='Measured Positions', alpha=0.2)
 
     # Plotting UKF predictions
-    ax.plot(estimated_states[:, 0], estimated_states[:, 2], estimated_states[:, 4], 'r-', label='UKF Predictions')
+    ax.plot(estimated_states[:, 0], estimated_states[:, 2], estimated_states[:, 4], 'r-', label='Predictions')
 
     # Extract the last state and covariance for the heat map
-    x_last = estimated_states[-1, [0, 2]]
-    P_last = Ps[-1, np.ix_([0, 2], [0, 2])]
+    x_last = estimated_states[-1][ [0, 2]]
+    P_last = Ps[-1][np.ix_([0, 2], [0, 2])]
 
     # Generate grid of points for heat map in the XY plane at the last Z position
     z_last = estimated_states[-1, 4]
@@ -378,7 +379,7 @@ def plot_trajectory_3D(data_real, estimated_states, Ps):
     ax.contourf(x_grid, y_grid, z_values, rv.pdf(pos), levels=50, cmap='viridis', offset=z_last)
 
     # Setting labels and title
-    ax.set_title('3D Satellite Trajectory Prediction Using UKF')
+    
     ax.set_xlabel('X Position')
     ax.set_ylabel('Y Position')
     ax.set_zlabel('Z Position')
@@ -401,7 +402,7 @@ def plot_trajectory_2D(data_test, estimated_states, covariances):
     # Plot measured positions
     ax.scatter(data_test['x'], data_test['y'], color='blue', label='Measured Positions', alpha=0.6)
     # Plot estimated positions
-    ax.errorbar(x_positions, y_positions, xerr=x_errors, yerr=y_errors, fmt='o', color='red', ecolor='lightgray', elinewidth=3, capsize=0, label='Estimated Positions')
+    ax.errorbar(x_positions[1:], y_positions[1:], xerr=x_errors, yerr=y_errors, color='red', ecolor='lightgray', elinewidth=3, capsize=0, label='Estimated Positions')
     
     # Add titles and labels
     ax.set_title('Estimated Satellite Trajectory with Error Bars')
@@ -413,7 +414,7 @@ def plot_trajectory_2D(data_test, estimated_states, covariances):
     plt.show()
 
 # Main function to run chosen filter on input data
-def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XYZ', reading_interval=10, sat_initpos=[0,0,0], initial_time=None, multilateration_number=3, fixed_earth=True):
+def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XYZ', reading_interval=10, sat_initpos=[0,0,0], initial_time=None, multilateration_number=3, fixed_earth=True, radar_noise=5, process_noise=0.001):
     if filter_type == 'ekf' and dimension == '2d':
         reading_columns = ['x', 'y']
         position_columns = ['x', 'y']
@@ -441,7 +442,11 @@ def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XY
             cov_est.append(P)
         predicted_positions = np.array(x_est)
         predicted_cov = np.asarray(cov_est)
-
+        if visualize:
+            # Visualization logic based on filter type and dimension
+            plot_trajectory_2D(data_test, predicted_positions, predicted_cov)
+       
+            
         return predicted_positions, predicted_cov
 
     elif filter_type == 'kalman' and dimension == '2d':
@@ -457,12 +462,16 @@ def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XY
         # Constants
         F = np.array([[1, dt, 0, 0], [0, 1, 0, 0], [0, 0, 1, dt], [0, 0, 0, 1]]) # State transition matrix
         H = np.array([[1, 0, 0, 0], [0, 0, 1, 0]]) # Measurement matrix
-        R = np.diag([8, 8]) # Assuming measurement noise is large
-        Q = np.diag([0.1, 0.1, 0.1, 0.1]) * 0.001 # Assuming process noise is small
-        P = np.diag([10, 1, 10, 1]) # Initial state covariance
+        R = np.diag([radar_noise, radar_noise]) # Assuming measurement noise is large
+        Q = np.diag([process_noise, process_noise, process_noise, process_noise]) * 0.001 # Assuming process noise is small
+        P = np.diag([radar_noise, 0, radar_noise, 0]) # Initial state covariance
 
         predicted_positions, predicted_cov = kalman_filter(data_test, F, H, Q, R, P, dt)
-
+        if visualize:
+            # Visualization logic based on filter type and dimension
+            plot_trajectory_2D(data_test, predicted_positions, predicted_cov)
+       
+            
         return predicted_positions, predicted_cov
 
 
@@ -493,26 +502,26 @@ def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XY
         M_earth = 5.972e24
         drag = 1
 
-        # Settings
         F = np.array([
             [1, dt, 0,  0,  0,  0],
-            [0,  1 - drag * dt / M_earth, 0,  0,  0,  0],
+            [0,  1 , 0,  0,  0,  0],
             [0,  0, 1, dt,  0,  0],
-            [0,  0, 0,  1 - drag * dt / M_earth,  0,  0],
+            [0,  0, 0,  1 ,  0,  0],
             [0,  0, 0,  0,  1, dt],
-            [0,  0, 0,  0,  0,  1- drag * dt / M_earth]
+            [0,  0, 0,  0,  0,  1]
         ])
         H = np.array([
             [1, 0, 0, 0, 0, 0],
             [0, 0, 1, 0, 0, 0],
             [0, 0, 0, 0, 1, 0]
         ])
-        R = np.diag([8.5, 8.5, 8.5])  # Measurement noise covariance
-        Q = np.diag([0.1, 0, 0.1, 0, 0.1, 0]) * 0.001  # Process noise covariance
+        R = np.diag([5, 5, 5])  # Measurement noise covariance
+        Q = np.diag([0.1, 0, 0.1, 0, 0.1, 0]) * 0.1  # Process noise covariance
         P = np.diag([10, 1, 10, 1, 10, 1])  # Initial state covariance
-
         predicted_positions, predicted_cov = kalman_filter_3d(data_test, F, H, Q, R, P)
-
+        if visualize:
+            # Visualization logic based on filter type and dimension
+            plot_trajectory_3D(data_test, predicted_positions, predicted_cov)
         return predicted_positions, predicted_cov
 
 
@@ -541,19 +550,15 @@ def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XY
 
         
         predicted_positions, predicted_cov = ukf_3d(data_test, dt)
-
+        if visualize:
+            # Visualization logic based on filter type and dimension
+            plot_trajectory_3D(data_test, predicted_positions, predicted_cov)
         return predicted_positions, predicted_cov
 
-    if visualize:
-        # Visualization logic based on filter type and dimension
-        if dimension == '2d':
-            plot_trajectory_2D(data_test, predicted_positions, predicted_cov)
-       
-        if dimension == '3d':
-            plot_trajectory_3D(data_test, predicted_positions, predicted_cov)
+    
 
         
 # Example of how to use the backend
 if __name__ == '__main__':
     
-    run_filter('ekf', '2d', visualize=True, dt=1.0)
+    run_filter('kalman', '2d', visualize=True, dt=1.0)
