@@ -658,7 +658,7 @@ class VisualizationWindow(QMainWindow):
 
         for i in range(len(pred_positions)):
             cov = covariances[i][:2, :2]  
-            ellipse = get_error_ellipse_2d(cov, pred_positions[i])
+            ellipse = self.get_error_ellipse_2d(cov, pred_positions[i])
             self.ax.add_patch(ellipse)
 
         self.ax.legend()
