@@ -418,8 +418,8 @@ def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XY
     if filter_type == 'ekf' and dimension == '2d':
         reading_columns = ['x', 'y']
         position_columns = ['x', 'y']
-        radar_data_path = '/content/Radar_Readings_2D.csv'
-        radar_positions_path = '/content/Radar_Positions_2D.csv'
+        radar_data_path = 'Radar_Readings_2D.csv'
+        radar_positions_path = 'Radar_Positions_2D.csv'
         radar_data = pd.read_csv(radar_data_path, names=reading_columns)
         radar_positions = pd.read_csv(radar_positions_path, names=position_columns)
         data_test = estimate_position_from_radars_2D(radar_positions, radar_data)
@@ -453,8 +453,8 @@ def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XY
         # Prepare and run Kalman Filter 2D
         reading_columns = ['x', 'y']
         position_columns = ['x', 'y']
-        radar_data_path = '/content/Radar_Readings_2D.csv'
-        radar_positions_path = '/content/Radar_Positions_2D.csv'
+        radar_data_path = 'Radar_Readings_2D.csv'
+        radar_positions_path = 'Radar_Positions_2D.csv'
         radar_data = pd.read_csv(radar_data_path, names=reading_columns)
         radar_positions = pd.read_csv(radar_positions_path, names=position_columns)
         data_test = estimate_position_from_radars_2D(radar_positions, radar_data)
@@ -478,8 +478,8 @@ def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XY
     elif filter_type == 'kalman' and dimension == '3d':
         reading_columns = ['x', 'y', 'z']
         position_columns = ['x', 'y', 'z']
-        radar_data_path = '/content/Radar_Readings.csv'
-        radar_positions_path = '/content/Radar_Positions.csv'
+        radar_data_path = 'Radar_Readings.csv'
+        radar_positions_path = 'Radar_Positions.csv'
         radar_data = pd.read_csv(radar_data_path, names=reading_columns)
         radar_positions = pd.read_csv(radar_positions_path, names=position_columns)
         if reading_type == 'XYZ':
@@ -529,8 +529,8 @@ def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XY
     elif filter_type == 'ukf' and dimension == '3d':
         reading_columns = ['x', 'y', 'z']
         position_columns = ['x', 'y', 'z']
-        radar_data_path = '/content/Radar_Readings.csv'
-        radar_positions_path = '/content/Radar_Positions.csv'
+        radar_data_path = 'Radar_Readings.csv'
+        radar_positions_path = 'Radar_Positions.csv'
         radar_data = pd.read_csv(radar_data_path, names=reading_columns)
         radar_positions = pd.read_csv(radar_positions_path, names=position_columns)
         if reading_type == 'XYZ':
