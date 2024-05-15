@@ -430,12 +430,12 @@ class Window_2D(QWidget):
             'reading_interval': eval(self.readint_text.text())
         }
         
-        dt = eval(self.steptime_text.text())
+        self.dt = eval(self.steptime_text.text())
         maxIter = eval(self.maxiter_text.text())
         simple_solver = self.simple_solver.isChecked()
         simple_radar = self.radiosimple.isChecked()
 
-        self.poshist, self.althist = warwick_pmsc_skylab.Simulator.Simulator_2D(ellipse_parameters, satellite_parameters, radar_parameters, dee_t = dt, maxIter = maxIter, solver = 'RK45', simple_solver = simple_solver, simple_radar = simple_radar)
+        self.poshist, self.althist = warwick_pmsc_skylab.Simulator.Simulator_2D(ellipse_parameters, satellite_parameters, radar_parameters, dee_t = self.dt, maxIter = maxIter, solver = 'RK45', simple_solver = simple_solver, simple_radar = simple_radar)
 
         #self.Handoff_2D(self.poshist, self.althist, None, None)
         self.run_predictor()
@@ -471,7 +471,7 @@ class Window_2D(QWidget):
         self.Handoff_2D(self.poshist, self.althist, self.predicted_positions, self.predicted_cov)
 
     def Handoff_2D(self, poshist, althist, predicted_positions, predicted_cov):
-        self.w = VisualizationWindow('2D', poshist, althist, predicted_positions, predicted_cov)
+        self.w = VisualizationWindow('2D', poshist, althist, predicted_positions, predicted_cov, self.inittime_text.dateTime().toPyDateTime(), self.dt, eval(self.pred_dt_text.text()))
         self.w.show()
         self.close()
 
@@ -831,7 +831,7 @@ class Window_3D(QWidget):
         self.loading_screen.label.setText("Running predictor...")
         QApplication.processEvents()
 
-        print("reached!")
+        #print("reached!")
         if self.filtertype_ukf.isChecked():
             filter_type = 'ukf'
         else:
