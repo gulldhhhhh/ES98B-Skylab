@@ -11,12 +11,11 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.widgets import Slider
 from PyQt5.QtWidgets import QMessageBox, QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QLineEdit, QRadioButton, QGroupBox, QHBoxLayout, QDateTimeEdit, QMainWindow, QCheckBox, QButtonGroup, QTextEdit, QDialog, QSlider
-from PyQt5.QtCore import Qt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar
+from PyQt5.QtCore import Qt, QEvent
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar
 import matplotlib.patches as patches
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from scipy.stats import multivariate_normal
@@ -798,16 +797,15 @@ class VisualizationWindow(QMainWindow):
     def initUI(self):
         self.setWindowTitle(self.title)
         self.setGeometry(100, 100, 800, 600)
-        
+
         widget = QWidget(self)
         self.setCentralWidget(widget)
         layout = QVBoxLayout()
         widget.setLayout(layout)
-        
+
         self.figure = plt.figure()
         self.canvas = FigureCanvas(self.figure)
         layout.addWidget(self.canvas)
-
         self.toolbar = NavigationToolbar(self.canvas, self)
         layout.addWidget(self.toolbar)
 
@@ -820,61 +818,86 @@ class VisualizationWindow(QMainWindow):
         simulator_crash_time.setText(f"Simulator predicted crash at time:")
         simulator_vals.addWidget(simulator_crash_pos)
         simulator_vals.addWidget(simulator_crash_time)
-        
+
         predictor_vals = QHBoxLayout()
         predictor_crash_pos = QLabel()
         if self.model == "3D":
-            crash_pos = self.predicted_positions[-1, [0,2,4]]
+            crash_pos = self.predicted_positions[-1, [0, 2, 4]]
         else:
-            crash_pos = self.predicted_positions[[0,2], -1]
+            crash_pos = self.predicted_positions[[0, 2], -1]
         predictor_crash_pos.setText(f"Predictor predicted crash at location: {crash_pos}")
         predictor_crash_time = QLabel()
         predictor_crash_time.setText(f"Predictor predicted crash at time:")
         predictor_vals.addWidget(predictor_crash_pos)
         predictor_vals.addWidget(predictor_crash_time)
-        
+
         val_layout.addLayout(simulator_vals)
         val_layout.addLayout(predictor_vals)
 
         layout.addLayout(val_layout)
 
         self.back_button = QPushButton("Home", self)
-        self.back_button.setFixedSize(100,30)
+        self.back_button.setFixedSize(100, 30)
         self.back_button.clicked.connect(self.go_back)
         layout.addWidget(self.back_button)
 
-        zoom_slider = QSlider(Qt.Horizontal)
-        zoom_slider.setMinimum(1)
-        zoom_slider.setMaximum(100)
-        zoom_slider.setValue(50)
-        zoom_slider.valueChanged.connect(self.zoom_plot)
-        layout.addWidget(zoom_slider)
-        
         if self.model == "3D":
             self.ax = self.figure.add_subplot(111, projection='3d')
             self.draw_3d_plot()
         else:
             self.ax = self.figure.add_subplot(111)
             self.draw_2d_plot()
-        
+
         plt.close()
+
+        self.installEventFilter(self)
+
+    def eventFilter(self, source, event):
+        if event.type() == QEvent.Wheel:
+            delta = event.angleDelta().y()
+            if self.model == "3D":
+                self.zoom_3d_plot(delta)
+            else:
+                self.zoom_2d_plot(delta)
+            return True
+        return super().eventFilter(source, event)
+
+    def zoom_2d_plot(self, delta):
+        base_scale = 1.1
+        if delta > 0:
+            scale_factor = base_scale
+        else:
+            scale_factor = 1 / base_scale
+        self.ax.set_xlim(self.ax.get_xlim()[0] * scale_factor, self.ax.get_xlim()[1] * scale_factor)
+        self.ax.set_ylim(self.ax.get_ylim()[0] * scale_factor, self.ax.get_ylim()[1] * scale_factor)
+        self.canvas.draw_idle()
+
+    def zoom_3d_plot(self, delta):
+        base_scale = 1.1
+        if delta > 0:
+            scale_factor = base_scale
+        else:
+            scale_factor = 1 / base_scale
+        self.ax.set_xlim(self.ax.get_xlim()[0] * scale_factor, self.ax.get_xlim()[1] * scale_factor)
+        self.ax.set_ylim(self.ax.get_ylim()[0] * scale_factor, self.ax.get_ylim()[1] * scale_factor)
+        self.ax.set_zlim(self.ax.get_zlim()[0] * scale_factor, self.ax.get_zlim()[1] * scale_factor)
+        self.canvas.draw_idle()
 
     def go_back(self):
         self.w = MainWindow()
         self.w.show()
         self.close()
-    
+
     def get_error_ellipse_2d(self, cov, pos, nsig=1):
         eigvals, eigvecs = np.linalg.eigh(cov)
         order = eigvals.argsort()[::-1]
         eigvals, eigvecs = eigvals[order], eigvecs[:, order]
-    
+
         angle = np.degrees(np.arctan2(*eigvecs[:, 0][::-1]))
         width, height = 2 * nsig * np.sqrt(eigvals)
         return patches.Ellipse(xy=pos, width=width, height=height, angle=angle, edgecolor='r', fc='None', lw=2)
-    
-    def get_error_ellipsoid_3d(self, cov, pos, nsig=1):
 
+    def get_error_ellipsoid_3d(self, cov, pos, nsig=1):
         eigvals, eigvecs = np.linalg.eigh(np.array(cov))
         order = eigvals.argsort()[::-1]
         eigvals, eigvecs = eigvals[order], eigvecs[:, order]
@@ -913,10 +936,10 @@ class VisualizationWindow(QMainWindow):
 
         x_errors = np.sqrt([cov[0, 0] for cov in covariances])  # Square root of variance for x
         y_errors = np.sqrt([cov[2, 2] for cov in covariances])  # Square root of variance for y
-        
+
         x_positions = pred_positions[0, :]
         y_positions = pred_positions[2, :]
-        self.ax.errorbar(x_positions[1:], y_positions[1:], xerr=x_errors, yerr=y_errors, color='red', linestyle = '--', ecolor='lightgray', elinewidth=9, capsize=0, label='Predicted Positions')
+        self.ax.errorbar(x_positions[1:], y_positions[1:], xerr=x_errors, yerr=y_errors, color='red', linestyle='--', ecolor='lightgray', elinewidth=9, capsize=0, label='Predicted Positions')
 
         earth = plt.Circle((0, 0), 6371, color='blue', label='Earth')
         self.ax.add_patch(earth)
@@ -925,8 +948,7 @@ class VisualizationWindow(QMainWindow):
         #     cov = covariances[np.ix_([0, 2], [0, 2])][i]
         #     ellipse = self.get_error_ellipse_2d(cov, pred_positions[:,i])
         #     self.ax.add_patch(ellipse)
-        
-        
+
         self.ax.legend()
         self.ax.grid(True)
         self.ax.set_xlabel('X Coordinate')
@@ -937,7 +959,7 @@ class VisualizationWindow(QMainWindow):
     def draw_3d_plot(self):
         print("Drawing Plot")
         poshist = np.array(self.poshist)
-        pred_positions = np.array(self.predicted_positions[:, [0,2,4]])
+        pred_positions = np.array(self.predicted_positions[:, [0, 2, 4]])
         covariances = self.predicted_cov
 
         fig = plt.figure()
@@ -966,12 +988,12 @@ class VisualizationWindow(QMainWindow):
         self.ax.plot(pred_positions[:, 0], pred_positions[:, 1], pred_positions[:, 2], 'r--', label='Predicted Path')
 
         # Extract the last state and covariance for the heat map
-        x_last = self.predicted_positions[-1][ [0, 2]]
+        x_last = self.predicted_positions[-1][[0, 2]]
         P_last = covariances[-1][np.ix_([0, 2], [0, 2])]
 
         # Generate grid of points for heat map in the XY plane at the last Z position
         z_last = self.predicted_positions[-1, 4]
-        x_grid, y_grid = np.mgrid[x_last[0]-50:x_last[0]+50:100j, x_last[1]-50:x_last[1]+50:100j]
+        x_grid, y_grid = np.mgrid[x_last[0] - 50:x_last[0] + 50:100j, x_last[1] - 50:x_last[1] + 50:100j]
         pos = np.dstack((x_grid, y_grid))
         rv = multivariate_normal(x_last, P_last)
         # Create a flattened array of Z values
@@ -979,12 +1001,11 @@ class VisualizationWindow(QMainWindow):
         # Use contourf to plot heat map at the last Z position
         self.ax.contourf(x_grid, y_grid, z_values, rv.pdf(pos), levels=50, cmap='viridis', offset=z_last)
 
-
         # for i in range(len(pred_positions)):
         #     cov = covariances[i][np.ix_([0, 2, 4], [0, 2, 4])]
         #     x_ellip, y_ellip, z_ellip = self.get_error_ellipsoid_3d(cov, pred_positions[i])
         #     self.ax.plot_wireframe(x_ellip, y_ellip, z_ellip, color='r', alpha=0.3)
-        
+
         self.ax.set_xlabel('X Position')
         self.ax.set_ylabel('Y Position')
         self.ax.set_zlabel('Z Position')
@@ -994,13 +1015,7 @@ class VisualizationWindow(QMainWindow):
         self.canvas.draw()
 
         plt.close()
-    
-    def zoom_plot(self, value):
-        scale = value / 50.0
-        self.ax.set_xlim3d([self.ax.get_xlim3d()[0] * scale, self.ax.get_xlim3d()[1] * scale])
-        self.ax.set_ylim3d([self.ax.get_ylim3d()[0] * scale, self.ax.get_ylim3d()[1] * scale])
-        self.ax.set_zlim3d([self.ax.get_zlim3d()[0] * scale, self.ax.get_zlim3d()[1] * scale])
-        self.canvas.draw()
+
 
 def run_GUI(window_class=MainWindow):
     app = 0
