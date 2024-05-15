@@ -533,7 +533,7 @@ class Window_3D(QWidget):
             filter_type = 'kalman'
 
         fixed_earth = not self.rot_earth_flag.isChecked()
-        self.predicted_positions, self.predicted_cov = warwick_pmsc_skylab.Predictor.Kalman.run_filter(filter_type, '3d', dt = eval(self.pred_dt_text.text()),reading_type=self.radar_parameters['reading_type'],sat_posinit=self.satellite_parameters['initial position'], initial_time=self.satellite_parameters['time'], multilateration_number=3, fixed_earth = fixed_earth, radar_noise = eval(self.noiselevel_text.text()), process_noise = eval(self.process_noise_text.text()))
+        self.predicted_positions, self.predicted_cov = warwick_pmsc_skylab.Predictor.Kalman.run_filter(filter_type, '3d', dt = eval(self.pred_dt_text.text()),reading_type=self.radar_parameters['reading_type'],sat_initpos=self.satellite_parameters['initial position'], initial_time=self.satellite_parameters['time'], multilateration_number=3, fixed_earth = fixed_earth, radar_noise = eval(self.noiselevel_text.text()), process_noise = eval(self.process_noise_text.text()))
         self.Handoff_3D(self.poshist, self.althist, self.predicted_positions, self.predicted_cov)
 
     def Handoff_3D(self, poshist, althist, predicted_positions, predicted_cov):
