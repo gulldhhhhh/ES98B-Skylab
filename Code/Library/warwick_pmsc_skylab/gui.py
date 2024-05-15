@@ -810,11 +810,11 @@ class Window_3D(QWidget):
             'reading_interval': eval(self.readint_text.text())
         }
         
-        self.dt = eval(self.steptime_text.text())
+        dt = eval(self.steptime_text.text())
         maxIter = eval(self.maxiter_text.text())
         simple_radar = self.radiosimple.isChecked()
 
-        self.poshist, self.althist = warwick_pmsc_skylab.Simulator.Simulator(self.satellite_parameters, self.radar_parameters, dt = self.dt, maxIter = maxIter, solver = 'RK45', simple_solver = False, simple_radar = simple_radar, rotating_earth=self.rot_earth_flag.isChecked())
+        self.poshist, self.althist = warwick_pmsc_skylab.Simulator.Simulator(self.satellite_parameters, self.radar_parameters, dt = dt, maxIter = maxIter, solver = 'RK45', simple_solver = False, simple_radar = simple_radar, rotating_earth=self.rot_earth_flag.isChecked())
 
         self.run_predictor()
     
@@ -844,7 +844,7 @@ class Window_3D(QWidget):
         self.Handoff_3D(self.poshist, self.althist, self.predicted_positions, self.predicted_cov)
 
     def Handoff_3D(self, poshist, althist, predicted_positions, predicted_cov):
-        self.w = VisualizationWindow('3D', poshist, althist, predicted_positions, predicted_cov, self.inittime_text.dateTime().toPyDateTime(), self.dt, eval(self.pred_dt_text.text()))
+        self.w = VisualizationWindow('3D', poshist, althist, predicted_positions, predicted_cov)
         self.w.show()
         self.close()
 
@@ -946,7 +946,7 @@ class VisualizationWindow(QMainWindow):
     - draw_2d_plot(): Draws the 2D plot.
     - draw_3d_plot(): Draws the 3D plot.
     """
-    def __init__(self, model, poshist, althist, predicted_positions, predicted_cov, init_time, sim_timestep, pred_timestep):
+    def __init__(self, model, poshist, althist, predicted_positions, predicted_cov):
         super().__init__()
         self.title = 'Simulation and Prediction Visualization'
         self.model = model
@@ -954,9 +954,6 @@ class VisualizationWindow(QMainWindow):
         self.althist = althist
         self.predicted_positions = predicted_positions
         self.predicted_cov = predicted_cov
-        self.init_time = init_time
-        self.sim_runtime = (len(self.poshist)-1) * sim_timestep
-        self.pred_runtime = (len(self.predicted_positions)-1) * pred_timestep
         self.initUI()
 
     def initUI(self):
@@ -992,7 +989,7 @@ class VisualizationWindow(QMainWindow):
         simulator_crash_pos = QLabel()
         simulator_crash_pos.setText(f"Simulator predicted crash at location: {self.poshist[-1]}")
         simulator_crash_time = QLabel()
-        simulator_crash_time.setText(f"Simulator predicted crash at time: {self.init_time + datetime.timedelta(0,self.sim_runtime)}")
+        simulator_crash_time.setText(f"Simulator predicted crash at time:")
         simulator_vals.addWidget(simulator_crash_pos)
         simulator_vals.addWidget(simulator_crash_time)
 
@@ -1004,7 +1001,7 @@ class VisualizationWindow(QMainWindow):
             crash_pos = self.predicted_positions[[0, 2], -1]
         predictor_crash_pos.setText(f"Predictor predicted crash at location: {crash_pos}")
         predictor_crash_time = QLabel()
-        predictor_crash_time.setText(f"Predictor predicted crash at time: {self.init_time + datetime.timedelta(0,self.pred_runtime)}")
+        predictor_crash_time.setText(f"Predictor predicted crash at time:")
         predictor_vals.addWidget(predictor_crash_pos)
         predictor_vals.addWidget(predictor_crash_time)
 
@@ -1150,7 +1147,7 @@ class VisualizationWindow(QMainWindow):
         y_positions = pred_positions[2, :]
         self.ax.errorbar(x_positions[1:], y_positions[1:], xerr=x_errors, yerr=y_errors, color='red', linestyle='--', ecolor='lightgray', elinewidth=9, capsize=0, label='Predicted Positions')
 
-        earth = plt.Circle((0, 0), 6371000, color='blue', label='Earth')
+        earth = plt.Circle((0, 0), 6371, color='blue', label='Earth')
         self.ax.add_patch(earth)
 
         # for i in range(len(pred_positions)):
@@ -1171,7 +1168,7 @@ class VisualizationWindow(QMainWindow):
         pred_positions = np.array(self.predicted_positions[:, [0, 2, 4]])
         covariances = self.predicted_cov
         img = imread('world_map.jpg')
-        
+        img = img[::2, ::2]  # Reduces the resolution by a factor of 2
         x_ellipsoid, y_ellipsoid, z_ellipsoid = warwick_pmsc_skylab.Simulator.earth_ellipsoid
 
         fig = plt.figure()
