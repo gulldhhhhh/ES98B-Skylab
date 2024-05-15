@@ -258,7 +258,8 @@ class D2_Satellite:
         Given a satellite's position, and accounting for non-zero-centred ellipses, computes
         The gravitational accelleration experienced by the satellite at that position
         """
-        grav_acc = -G*M_e / np.linalg.norm(np.array(self.position) - np.array([ell.x, ell.y]))**2
+        G_meters = 6.6743e-11
+        grav_acc = -G_meters*M_e / np.linalg.norm(np.array(self.position) - np.array([ell.x, ell.y]))**2
         theta = np.arctan2(self.position[1], self.position[0])
         return np.array([grav_acc * np.cos(theta),grav_acc * np.sin(theta)])
 
