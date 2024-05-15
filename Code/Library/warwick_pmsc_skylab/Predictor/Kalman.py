@@ -436,7 +436,7 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
         P = np.diag([10, 1, 10, 1])
         cov_est = []
         Q = np.eye(4) * process_noise
-        R = np.diag([measurement_noise, meaurement_noise])
+        R = np.diag([measurement_noise, measurement_noise])
         for i in range(1, num_steps):
             measurements[:, i] = data_test.iloc[i][['x', 'y']].values
             x_est[:, i], P = extended_kalman_filter(x_est[:, i-1], P, measurements[:, i], Q, R, dt)
