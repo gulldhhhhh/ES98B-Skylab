@@ -10,7 +10,7 @@ import warwick_pmsc_skylab.Predictor.Kalman
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.widgets import Slider
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QLineEdit, QRadioButton, QGroupBox, QHBoxLayout, QDateTimeEdit, QMainWindow, QCheckBox, QButtonGroup, QTextEdit
+from PyQt5.QtWidgets import QMessageBox, QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QLineEdit, QRadioButton, QGroupBox, QHBoxLayout, QDateTimeEdit, QMainWindow, QCheckBox, QButtonGroup, QTextEdit, QDialog
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -21,6 +21,16 @@ from scipy.stats import multivariate_normal
 
 
 # In[10]:
+
+class LoadingScreen(QDialog):
+    def __init__(self, message="Loading..."):
+        super().__init__()
+        self.setWindowTitle("Please Wait")
+        layout = QVBoxLayout()
+        self.label = QLabel(message)
+        layout.addWidget(self.label)
+        self.setLayout(layout)
+        self.setFixedSize(200, 100)
 
 
 class Window_2D(QWidget):
@@ -295,8 +305,35 @@ class Window_2D(QWidget):
         else:
             self.maxiter_text.setText("")
             self.maxiter_text.setEnabled(True)
-    
+
+    def show_error_message(self, message):
+        error_dialog = QMessageBox()
+        error_dialog.setIcon(QMessageBox.Critical)
+        error_dialog.setText(message)
+        error_dialog.setWindowTitle("Error")
+        error_dialog.exec_()
+
     def run_simulator(self):
+        if not self.centre_text.text() or not self.width_text.text() or not self.height_text.text() or not self.angle_text.text():
+            self.show_error_message("Please fill in all ellipse parameters.")
+            return
+
+        if not self.mass_text.text() or not self.drag_text.text() or not self.initpos_text.text() or not self.initspeed_text.text():
+            self.show_error_message("Please fill in all satellite parameters.")
+            return
+
+        if not self.radarparam_text.text() or not self.noiselevel_text.text() or not self.readint_text.text():
+            self.show_error_message("Please fill in all radar parameters.")
+            return
+
+        if not self.steptime_text.text() or not self.maxiter_text.text():
+            self.show_error_message("Please fill in all simulator parameters.")
+            return
+        
+        self.loading_screen = LoadingScreen("Running simulator...")
+        self.loading_screen.show()
+        QApplication.processEvents()
+
         ellipse_parameters = {
             'centre': eval(self.centre_text.text()),
             'width': eval(self.width_text.text()),
@@ -337,6 +374,9 @@ class Window_2D(QWidget):
         self.run_predictor()
     
     def run_predictor(self):
+        self.loading_screen.label.setText("Running predictor...")
+        QApplication.processEvents()
+
         if self.filtertype_ekf.isChecked():
             filter_type = 'ekf'
         else:
@@ -344,6 +384,8 @@ class Window_2D(QWidget):
         
 
         self.predicted_positions, self.predicted_cov = warwick_pmsc_skylab.Predictor.Kalman.run_filter(filter_type, '2d', dt = eval(self.pred_dt_text.text()), radar_noise = eval(self.noiselevel_text.text()), process_noise = eval(self.process_noise_text.text()))
+        
+        self.loading_screen.close()
         self.Handoff_2D(self.poshist, self.althist, self.predicted_positions, self.predicted_cov)
 
     def Handoff_2D(self, poshist, althist, predicted_positions, predicted_cov):
@@ -617,6 +659,10 @@ class Window_3D(QWidget):
             self.maxiter_text.setEnabled(True)
 
     def run_simulator(self):
+        
+        self.loading_screen = LoadingScreen("Running simulator...")
+        self.loading_screen.show()
+        QApplication.processEvents()
 
         self.satellite_parameters = {
             'mass': eval(self.mass_text.text()),
@@ -647,6 +693,10 @@ class Window_3D(QWidget):
         self.run_predictor()
     
     def run_predictor(self):
+
+        self.loading_screen.label.setText("Running predictor...")
+        QApplication.processEvents()
+
         print("reached!")
         if self.filtertype_ukf.isChecked():
             filter_type = 'ukf'
@@ -655,6 +705,8 @@ class Window_3D(QWidget):
 
         fixed_earth = not self.rot_earth_flag.isChecked()
         self.predicted_positions, self.predicted_cov = warwick_pmsc_skylab.Predictor.Kalman.run_filter(filter_type, '3d', dt = eval(self.pred_dt_text.text()),reading_type=self.radar_parameters['reading type'],sat_initpos=self.satellite_parameters['initial position'], initial_time=self.satellite_parameters['time'], multilateration_number=3, fixed_earth = fixed_earth, radar_noise = eval(self.noiselevel_text.text()), process_noise = eval(self.process_noise_text.text()))
+        
+        self.loading_screen.close()
         self.Handoff_3D(self.poshist, self.althist, self.predicted_positions, self.predicted_cov)
 
     def Handoff_3D(self, poshist, althist, predicted_positions, predicted_cov):
