@@ -1170,8 +1170,8 @@ class VisualizationWindow(QMainWindow):
         poshist = np.array(self.poshist)
         pred_positions = np.array(self.predicted_positions[:, [0, 2, 4]])
         covariances = self.predicted_cov
-        img = imread('world_map.jpg')
-        img = img[::2, ::2]  # Reduces the resolution by a factor of 2
+        #img = imread('world_map.jpg')
+        #img = img[::2, ::2]  # Reduces the resolution by a factor of 2
         x_ellipsoid, y_ellipsoid, z_ellipsoid = warwick_pmsc_skylab.Simulator.earth_ellipsoid
 
         fig = plt.figure()
@@ -1181,10 +1181,10 @@ class VisualizationWindow(QMainWindow):
         u = np.linspace(0, 2 * np.pi, 100)
         v = np.linspace(0, np.pi, 50)
         u, v = np.meshgrid(u, v)
-        img = img / 255.0  # Normalize the image to the range [0, 1]
+        #img = img / 255.0  # Normalize the image to the range [0, 1]
 
         # Create the ellipsoid with texture
-        self.ax.plot_surface(x_ellipsoid, y_ellipsoid, z_ellipsoid, rstride=5, cstride=5, facecolors=img, linewidth=0, antialiased=False)
+        self.ax.plot_surface(x_ellipsoid, y_ellipsoid, z_ellipsoid, rstride=5, cstride=5, linewidth=0, antialiased=False)
 
         line, = self.ax.plot(poshist[:, 0], poshist[:, 1], poshist[:, 2])
 
