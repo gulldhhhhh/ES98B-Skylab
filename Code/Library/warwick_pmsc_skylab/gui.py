@@ -1177,14 +1177,14 @@ class VisualizationWindow(QMainWindow):
         fig = plt.figure()
         plt.axis('off')
         
-        # Map the texture to the ellipsoid
-        u = np.linspace(0, 2 * np.pi, 100)
-        v = np.linspace(0, np.pi, 50)
-        u, v = np.meshgrid(u, v)
+        # # Map the texture to the ellipsoid
+        # u = np.linspace(0, 2 * np.pi, 100)
+        # v = np.linspace(0, np.pi, 50)
+        # u, v = np.meshgrid(u, v)
         #img = img / 255.0  # Normalize the image to the range [0, 1]
 
         # Create the ellipsoid with texture
-        self.ax.plot_surface(x_ellipsoid, y_ellipsoid, z_ellipsoid, rstride=5, cstride=5, linewidth=0, antialiased=False)
+        self.ax.plot_surface(x_ellipsoid, y_ellipsoid, z_ellipsoid, rstride=5, cstride=5, linewidth=0, alpha=0.3)
 
         line, = self.ax.plot(poshist[:, 0], poshist[:, 1], poshist[:, 2])
 
