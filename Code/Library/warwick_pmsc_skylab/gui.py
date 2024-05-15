@@ -1008,10 +1008,16 @@ class VisualizationWindow(QMainWindow):
         predictor_vals.addWidget(predictor_crash_pos)
         predictor_vals.addWidget(predictor_crash_time)
 
+        covariance_vals = QHBoxLayout()
+        final_covariance = QLabel()
+        final_covariance.setText(f"Final Covariance: {self.predicted_cov[-1]}")
+
         val_layout.addLayout(simulator_vals)
         val_layout.addLayout(predictor_vals)
 
         layout.addLayout(val_layout)
+
+
 
         self.back_button = QPushButton("Home", self)
         self.back_button.setFixedSize(100, 30)
