@@ -24,6 +24,13 @@ from scipy.stats import multivariate_normal
 # In[10]:
 
 class LoadingScreen(QDialog):
+    """
+    A dialog window that displays a loading message.
+    
+    Args:
+        message (str): The message to be displayed on the loading screen.
+    """
+    
     def __init__(self, message="Loading..."):
         super().__init__()
         self.setWindowTitle("Please Wait")
@@ -36,11 +43,22 @@ class LoadingScreen(QDialog):
 
 class Window_2D(QWidget):
     def __init__(self):
+        """
+        Initializes the 2D Model Input GUI.
+
+        Sets the window title and creates the layout for the GUI.
+        Defines the sections for ellipse parameters, satellite parameters, radar parameters,
+        simulator parameters, and predictor parameters.
+        Adds the necessary widgets and layouts to each section.
+        Connects signals and slots for button clicks and checkbox state changes.
+        """
+        
         super().__init__()
         self.setWindowTitle("2D Model Input")
         layout = QVBoxLayout()
 
         toplevel_1 = QHBoxLayout()
+
         #Define Ellipse Sectoin
         ellipsebox = QGroupBox("Ellipse Parameters")
         ellipse_layout = QVBoxLayout()
@@ -162,6 +180,7 @@ class Window_2D(QWidget):
         layout.addWidget(radarbox)
 
         toplevel_2 = QHBoxLayout()
+
         #Simulator Parameters
         simulatorbox = QGroupBox("Simulator Parameters")
         simulator_layout = QVBoxLayout()
@@ -217,7 +236,7 @@ class Window_2D(QWidget):
         
         #layout.addWidget(simulatorbox)
 
-        #Predictor Parameters
+        # Predictor Parameters
 
         predictorbox = QGroupBox("Predictor Parameters")
         predictor_layout = QVBoxLayout()
@@ -268,11 +287,25 @@ class Window_2D(QWidget):
         self.setLayout(layout)
     
     def go_back(self):
+        """
+        Go back to the main window.
+
+        Creates a new instance of the MainWindow class, shows it, and closes the current window.
+        """
         self.w = MainWindow()
         self.w.show()
         self.close()
     
     def set_initpos(self):
+        """
+        Sets the initial position of the GUI window based on the provided width, height, and center coordinates.
+
+        If the width, height, and center coordinates are provided, the initial position is calculated as follows:
+        - The x-coordinate is calculated as (width - center_x) + 0.1 * width
+        - The y-coordinate is calculated as (height - center_y) + 0.1 * height
+
+        If any of the width, height, or center coordinates are not provided, the default initial position is set to [100, 100].
+        """
         if self.width_text.text() != "" and self.height_text != "" and self.centre_text != "":
             self.initpos_text.setText(f"[{((eval(self.width_text.text()) - eval(self.centre_text.text())[0])) + 0.1 * eval(self.width_text.text())}, {((eval(self.height_text.text()) - eval(self.centre_text.text())[1])) + 0.1 * eval(self.height_text.text())}]")
         else:
@@ -308,13 +341,36 @@ class Window_2D(QWidget):
             self.maxiter_text.setEnabled(True)
 
     def show_error_message(self, message):
-        error_dialog = QMessageBox()
-        error_dialog.setIcon(QMessageBox.Critical)
-        error_dialog.setText(message)
-        error_dialog.setWindowTitle("Error")
-        error_dialog.exec_()
+            """
+            Display an error message dialog box.
+
+            Args:
+                message (str): The error message to be displayed.
+
+            Returns:
+                None
+            """
+            error_dialog = QMessageBox()
+            error_dialog.setIcon(QMessageBox.Critical)
+            error_dialog.setText(message)
+            error_dialog.setWindowTitle("Error")
+            error_dialog.exec_()
 
     def run_simulator(self):
+        """
+        Runs the simulator with the provided parameters.
+
+        This method checks if all the required parameters are filled in and displays an error message if any parameter is missing.
+        It then initializes the loading screen, shows it, and processes any pending events in the application.
+        The method then retrieves the ellipse, satellite, and radar parameters from the GUI inputs.
+        It sets the initial velocity of the satellite based on the user's selection of tangential velocity or custom vector.
+        The method then prints the satellite parameters and sets the radar parameters.
+        Finally, it calls the `Simulator_2D` method to run the simulator and stores the position and altitude history.
+        It then passes to the `run_predictor` method.
+
+        Returns:
+            None
+        """
         if not self.centre_text.text() or not self.width_text.text() or not self.height_text.text() or not self.angle_text.text():
             self.show_error_message("Please fill in all ellipse parameters.")
             return
@@ -375,6 +431,21 @@ class Window_2D(QWidget):
         self.run_predictor()
     
     def run_predictor(self):
+        """
+        Runs the predictor based on the selected filter type and updates the predicted positions and covariance.
+
+        This method sets the loading screen label to indicate that the predictor is running. It then checks the selected
+        filter type and assigns the corresponding value to the `filter_type` variable. The predictor is then executed
+        using the selected filter type, 2D mode, and the provided parameters for time step, radar noise, and process noise.
+        The predicted positions and covariance are stored in the `self.predicted_positions` and `self.predicted_cov`
+        variables, respectively.
+
+        Finally, the loading screen is closed and the `Handoff_2D` method is called with the historical positions,
+        historical altitudes, predicted positions, and predicted covariance as arguments.
+
+        Returns:
+            None
+        """
         self.loading_screen.label.setText("Running predictor...")
         QApplication.processEvents()
 
@@ -399,6 +470,21 @@ class Window_2D(QWidget):
 
 class Window_3D(QWidget):
     def __init__(self):
+        """
+        Initializes the 3D Model Input GUI.
+
+        This method sets up the window title and creates the layout for the GUI.
+        It also creates the sections for Satellite Parameters, Radar Parameters,
+        Simulator Parameters, and Predictor Parameters. Each section contains
+        various input fields and buttons for user interaction.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        
         super().__init__()
         self.setWindowTitle("3D Model Input")
         layout = QVBoxLayout()
@@ -508,7 +594,7 @@ class Window_3D(QWidget):
 
 
         toplevel_2 = QHBoxLayout()
-        #Simulator Parameters
+        # Simulator Parameters
         simulatorbox = QGroupBox("Simulator Parameters")
         simulator_layout = QVBoxLayout()
 
@@ -667,6 +753,15 @@ class Window_3D(QWidget):
         error_dialog.exec_()
 
     def run_simulator(self):
+        """
+        Runs the simulator with the provided satellite and radar parameters.
+
+        This method checks if all the required parameters are filled in the GUI.
+        If any parameter is missing, it displays an error message and returns.
+        Otherwise, it initializes the simulator with the provided parameters and runs it.
+        The simulator calculates the position and altitude history of the satellite.
+        Finally, it calls the `run_predictor` method to perform prediction based on the calculated history.
+        """
 
         if not self.mass_text.text() or not self.drag_text.text() or not self.initpos_text.text() or not self.initspeed_text.text():
             self.show_error_message("Please fill in all satellite parameters.")
@@ -714,7 +809,15 @@ class Window_3D(QWidget):
         self.run_predictor()
     
     def run_predictor(self):
+        """
+        Runs the predictor algorithm.
 
+        This method runs the predictor algorithm based on the selected filter type and other parameters.
+        It updates the predicted positions and covariance matrices and then calls the Handoff_3D method.
+
+        Returns:
+            None
+        """
         self.loading_screen.label.setText("Running predictor...")
         QApplication.processEvents()
 
@@ -725,8 +828,8 @@ class Window_3D(QWidget):
             filter_type = 'kalman'
 
         fixed_earth = not self.rot_earth_flag.isChecked()
-        self.predicted_positions, self.predicted_cov = warwick_pmsc_skylab.Predictor.Kalman.run_filter(filter_type, '3d', dt = eval(self.pred_dt_text.text()),reading_type=self.radar_parameters['reading type'],sat_initpos=self.satellite_parameters['initial position'], initial_time=self.satellite_parameters['time'], multilateration_number=3, fixed_earth = fixed_earth, radar_noise = eval(self.noiselevel_text.text()), process_noise = eval(self.process_noise_text.text()))
-        
+        self.predicted_positions, self.predicted_cov = warwick_pmsc_skylab.Predictor.Kalman.run_filter(filter_type, '3d', dt=eval(self.pred_dt_text.text()), reading_type=self.radar_parameters['reading type'], sat_initpos=self.satellite_parameters['initial position'], initial_time=self.satellite_parameters['time'], multilateration_number=3, fixed_earth=fixed_earth, radar_noise=eval(self.noiselevel_text.text()), process_noise=eval(self.process_noise_text.text()))
+
         self.loading_screen.close()
         self.Handoff_3D(self.poshist, self.althist, self.predicted_positions, self.predicted_cov)
 
@@ -737,6 +840,12 @@ class Window_3D(QWidget):
 
 
 class MainWindow(QMainWindow):
+    """
+    The main window of the Skylab Orbit Predictor GUI.
+
+    This window allows the user to choose between the 2D and 3D versions of the Skylab Orbit Predictor.
+    """
+
     def __init__(self):
         super().__init__()
         self.w = None
@@ -770,20 +879,63 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
     
     def exit(self):
+        """
+        Exit the application and close the main window.
+        """
         QApplication.quit()
         self.hide()
     
     def show_2D_window(self, checked):
+        """
+        Show the 2D window and close the main window.
+        """
         self.w = Window_2D()
         self.w.show()
         self.close()
     
     def show_3D_window(self, checked):
+        """
+        Show the 3D window and close the main window.
+        """
         self.w = Window_3D()
         self.w.show()
         self.close()
 
 class VisualizationWindow(QMainWindow):
+    """
+    A class representing a visualization window for simulation and prediction.
+
+    Parameters:
+    - model (str): The model used for prediction (either "2D" or "3D").
+    - poshist (list): The history of positions during simulation.
+    - althist (list): The history of altitudes during simulation.
+    - predicted_positions (numpy.ndarray): The predicted positions.
+    - predicted_cov (list): The predicted covariance matrices.
+
+    Attributes:
+    - title (str): The title of the visualization window.
+    - model (str): The model used for prediction.
+    - poshist (list): The history of positions during simulation.
+    - althist (list): The history of altitudes during simulation.
+    - predicted_positions (numpy.ndarray): The predicted positions.
+    - predicted_cov (list): The predicted covariance matrices.
+    - figure (matplotlib.figure.Figure): The figure object for the plot.
+    - canvas (matplotlib.backends.backend_qt5agg.FigureCanvasQTAgg): The canvas for the plot.
+    - toolbar (matplotlib.backends.backend_qt5agg.NavigationToolbar2QT): The toolbar for the plot.
+    - ax (matplotlib.axes._subplots.AxesSubplot): The axes object for the plot.
+    - back_button (PyQt5.QtWidgets.QPushButton): The button to go back to the main window.
+
+    Methods:
+    - initUI(): Initializes the user interface of the visualization window.
+    - eventFilter(source, event): Filters events for the visualization window.
+    - zoom_2d_plot(delta): Zooms the 2D plot.
+    - zoom_3d_plot(delta): Zooms the 3D plot.
+    - go_back(): Closes the visualization window and goes back to the main window.
+    - get_error_ellipse_2d(cov, pos, nsig=1): Calculates the error ellipse for a 2D position.
+    - get_error_ellipsoid_3d(cov, pos, nsig=1): Calculates the error ellipsoid for a 3D position.
+    - draw_2d_plot(): Draws the 2D plot.
+    - draw_3d_plot(): Draws the 3D plot.
+    """
     def __init__(self, model, poshist, althist, predicted_positions, predicted_cov):
         super().__init__()
         self.title = 'Simulation and Prediction Visualization'
@@ -795,6 +947,18 @@ class VisualizationWindow(QMainWindow):
         self.initUI()
 
     def initUI(self):
+        """
+        Initializes the user interface for the application.
+
+        This method sets up the window title, geometry, and layout. It creates a figure and canvas for plotting,
+        adds a toolbar for navigation, and displays crash predictions from the simulator and predictor models.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         self.setWindowTitle(self.title)
         self.setGeometry(100, 100, 800, 600)
 
@@ -889,6 +1053,18 @@ class VisualizationWindow(QMainWindow):
         self.close()
 
     def get_error_ellipse_2d(self, cov, pos, nsig=1):
+        """
+        Returns an Ellipse object representing the error ellipse for a 2D Gaussian distribution.
+
+        Parameters:
+            cov (ndarray): The covariance matrix of the Gaussian distribution.
+            pos (tuple): The center position of the ellipse.
+            nsig (float): The number of standard deviations to include in the ellipse (default: 1).
+
+        Returns:
+            Ellipse: An Ellipse object representing the error ellipse.
+
+        """
         eigvals, eigvecs = np.linalg.eigh(cov)
         order = eigvals.argsort()[::-1]
         eigvals, eigvecs = eigvals[order], eigvecs[:, order]
@@ -898,6 +1074,26 @@ class VisualizationWindow(QMainWindow):
         return patches.Ellipse(xy=pos, width=width, height=height, angle=angle, edgecolor='r', fc='None', lw=2)
 
     def get_error_ellipsoid_3d(self, cov, pos, nsig=1):
+        """
+        Calculate the points of an error ellipsoid in 3D space.
+
+        Parameters:
+        - cov: numpy.ndarray
+            The covariance matrix of the ellipsoid.
+        - pos: numpy.ndarray
+            The position of the ellipsoid in 3D space.
+        - nsig: int, optional
+            The number of standard deviations to use for scaling the ellipsoid.
+            Default is 1.
+
+        Returns:
+        - x_ellip: numpy.ndarray
+            The x-coordinates of the ellipsoid points.
+        - y_ellip: numpy.ndarray
+            The y-coordinates of the ellipsoid points.
+        - z_ellip: numpy.ndarray
+            The z-coordinates of the ellipsoid points.
+        """
         eigvals, eigvecs = np.linalg.eigh(np.array(cov))
         order = eigvals.argsort()[::-1]
         eigvals, eigvecs = eigvals[order], eigvecs[:, order]
@@ -1001,10 +1197,10 @@ class VisualizationWindow(QMainWindow):
         # Use contourf to plot heat map at the last Z position
         self.ax.contourf(x_grid, y_grid, z_values, rv.pdf(pos), levels=50, cmap='viridis', offset=z_last)
 
-        # for i in range(len(pred_positions)):
-        #     cov = covariances[i][np.ix_([0, 2, 4], [0, 2, 4])]
-        #     x_ellip, y_ellip, z_ellip = self.get_error_ellipsoid_3d(cov, pred_positions[i])
-        #     self.ax.plot_wireframe(x_ellip, y_ellip, z_ellip, color='r', alpha=0.3)
+        for i in range(len(pred_positions)):
+            cov = covariances[i][np.ix_([0, 2, 4], [0, 2, 4])]
+            x_ellip, y_ellip, z_ellip = self.get_error_ellipsoid_3d(cov, pred_positions[i])
+            self.ax.plot_wireframe(x_ellip, y_ellip, z_ellip, color='r', alpha=0.3)
 
         self.ax.set_xlabel('X Position')
         self.ax.set_ylabel('Y Position')
