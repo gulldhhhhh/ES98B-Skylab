@@ -1184,7 +1184,7 @@ class VisualizationWindow(QMainWindow):
         #img = img / 255.0  # Normalize the image to the range [0, 1]
 
         # Create the ellipsoid with texture
-        self.ax.plot_surface(x_ellipsoid, y_ellipsoid, z_ellipsoid, rstride=5, cstride=5, linewidth=0, alpha=0.3)
+        self.ax.plot_surface(x_ellipsoid, y_ellipsoid, z_ellipsoid, alpha=0.3)
 
         line, = self.ax.plot(poshist[:, 0], poshist[:, 1], poshist[:, 2])
 
