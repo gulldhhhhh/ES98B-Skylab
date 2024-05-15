@@ -1198,8 +1198,8 @@ class VisualizationWindow(QMainWindow):
         N = iter(tuple(N))
 
         plt.axis('off')
-        ani = animation.FuncAnimation(fig, update, N, fargs=(poshist, line), cache_frame_data=False, interval=100, blit=False)
-        ani.save('SatelliteCrash.gif', writer='pillow')
+        #ani = animation.FuncAnimation(fig, update, N, fargs=(poshist, line), cache_frame_data=False, interval=100, blit=False)
+        #ani.save('SatelliteCrash.gif', writer='pillow')
         plt.subplots_adjust(wspace=0.9)
         plt.axis('off')
 
