@@ -658,8 +658,32 @@ class Window_3D(QWidget):
             self.maxiter_text.setText("")
             self.maxiter_text.setEnabled(True)
 
-    def run_simulator(self):
+    def show_error_message(self, message):
+        error_dialog = QMessageBox()
+        error_dialog.setIcon(QMessageBox.Critical)
+        error_dialog.setText(message)
+        error_dialog.setWindowTitle("Error")
+        error_dialog.exec_()
         
+    def run_simulator(self):
+
+        if not self.centre_text.text() or not self.width_text.text() or not self.height_text.text() or not self.angle_text.text():
+            self.show_error_message("Please fill in all ellipse parameters.")
+            return
+
+        if not self.mass_text.text() or not self.drag_text.text() or not self.initpos_text.text() or not self.initspeed_text.text():
+            self.show_error_message("Please fill in all satellite parameters.")
+            return
+
+        if not self.radarparam_text.text() or not self.noiselevel_text.text() or not self.readint_text.text():
+            self.show_error_message("Please fill in all radar parameters.")
+            return
+
+        if not self.steptime_text.text() or not self.maxiter_text.text():
+            self.show_error_message("Please fill in all simulator parameters.")
+            return
+        
+
         self.loading_screen = LoadingScreen("Running simulator...")
         self.loading_screen.show()
         QApplication.processEvents()
