@@ -1010,7 +1010,11 @@ class VisualizationWindow(QMainWindow):
 
         covariance_vals = QHBoxLayout()
         final_covariance = QLabel()
-        final_covariance.setText(f"Final Covariance: {self.predicted_cov[-1]}")
+        if self.model == "3D":
+            final_covariance.setText(f"Final Covariance (x-axis, y-axis, z-axis): {self.predicted_cov[-1,0,0], self.predicted_cov[-1,2,2], self.predicted_cov[-1,4,4]}")
+        else:
+            final_covariance.setText(f"Final Covariance (x-axis, y-axis): {self.predicted_cov[0,0,-1], self.predicted_cov[2,2,-1]}")
+        
         covariance_vals.addWidget(final_covariance)
 
         val_layout.addLayout(simulator_vals)
