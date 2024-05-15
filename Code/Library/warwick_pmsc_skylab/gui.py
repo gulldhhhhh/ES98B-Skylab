@@ -899,7 +899,7 @@ def run_GUI(window_class=MainWindow):
 # In[11]:
 
 
-run_GUI()
+#run_GUI()
 
 
 # In[ ]:
