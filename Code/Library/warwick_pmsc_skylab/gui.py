@@ -108,7 +108,7 @@ class Window_2D(QWidget):
         self.drag_layout.addWidget(self.drag_text)
 
         self.initpos_layout = QHBoxLayout()
-        self.initpos_layout.addWidget(QLabel("Initial Position:"))
+        self.initpos_layout.addWidget(QLabel("Initial Position (m):"))
         self.initpos_text = QLineEdit()
         self.initpos_layout.addWidget(self.initpos_text)
         self.default_initpos = QPushButton("Sample")
@@ -116,7 +116,7 @@ class Window_2D(QWidget):
         self.initpos_layout.addWidget(self.default_initpos)
 
         self.initspeed_layout = QHBoxLayout()
-        self.initspeed_layout.addWidget(QLabel("Initial Speed (Clockwise):"))
+        self.initspeed_layout.addWidget(QLabel("Initial Speed (Clockwise) (m/s):"))
         self.initspeed_text = QLineEdit()
         self.initspeed_layout.addWidget(self.initspeed_text)
 
@@ -990,7 +990,7 @@ class VisualizationWindow(QMainWindow):
 
         simulator_vals = QHBoxLayout()
         simulator_crash_pos = QLabel()
-        simulator_crash_pos.setText(f"Simulator predicted crash at location: {self.poshist[-1]}")
+        simulator_crash_pos.setText(f"Simulator predicted crash at location (km): {self.poshist[-1]}")
         simulator_crash_time = QLabel()
         simulator_crash_time.setText(f"Simulator predicted crash at time: {self.init_time + datetime.timedelta(0,self.sim_runtime)}")
         simulator_vals.addWidget(simulator_crash_pos)
@@ -1002,7 +1002,7 @@ class VisualizationWindow(QMainWindow):
             crash_pos = self.predicted_positions[-1, [0, 2, 4]]
         else:
             crash_pos = self.predicted_positions[[0, 2], -1]
-        predictor_crash_pos.setText(f"Predictor predicted crash at location: {crash_pos}")
+        predictor_crash_pos.setText(f"Predictor predicted crash at location (km): {crash_pos}")
         predictor_crash_time = QLabel()
         predictor_crash_time.setText(f"Predictor predicted crash at time: {self.init_time + datetime.timedelta(0,self.pred_runtime)}")
         predictor_vals.addWidget(predictor_crash_pos)
@@ -1013,8 +1013,9 @@ class VisualizationWindow(QMainWindow):
         if self.model == "3D":
             final_covariance.setText(f"Final Covariance (x-axis, y-axis, z-axis): {self.predicted_cov[-1,0,0], self.predicted_cov[-1,2,2], self.predicted_cov[-1,4,4]}")
         else:
-            final_covariance.setText(f"Final Covariance (x-axis, y-axis): {self.predicted_cov[0,0,-1], self.predicted_cov[2,2,-1]}")
-        
+            # final_covariance.setText(f"Final Covariance (x-axis, y-axis): {self.predicted_cov[0,0,-1], self.predicted_cov[2,2,-1]}")
+            final_covariance.setText(f"Final Covariance (x-axis, y-axis): {self.predicted_cov[np.ix_([0, 2], [0, 2])][-1]}")
+
         covariance_vals.addWidget(final_covariance)
 
         val_layout.addLayout(simulator_vals)
