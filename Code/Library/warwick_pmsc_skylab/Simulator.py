@@ -29,7 +29,7 @@ M_e = 5.972e24
 G = 6.673e-11
 rho_0 = 1.225
 H = 8400.0
-A = np.pi * (3.3 / 2)**2  # m^2, satellite windward area
+A = np.pi * 3.3 **2  # m^2, satellite windward area
 stellar_day  = 86164.1
 earth_rotation_s = 1/360 * stellar_day
 
