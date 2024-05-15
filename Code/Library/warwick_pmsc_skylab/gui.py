@@ -309,7 +309,13 @@ class Window_2D(QWidget):
         If any of the width, height, or center coordinates are not provided, the default initial position is set to [100, 100].
         """
         if self.width_text.text() != "" and self.height_text != "" and self.centre_text != "":
-            self.initpos_text.setText(f"[{((eval(self.width_text.text()) - eval(self.centre_text.text())[0])) + 0.1 * eval(self.width_text.text())}, {((eval(self.height_text.text()) - eval(self.centre_text.text())[1])) + 0.1 * eval(self.height_text.text())}]")
+            width = eval(self.width_text.text())
+            height = eval(self.height_text.text())
+            maxax = max(width, height)
+            absdist = 1.06 * maxax
+            randnum = np.random.random()
+            self.initpos_text.setText(f"[{(randnum * absdist):.2f}, {((1-randnum)*absdist):.2f}]")
+            #self.initpos_text.setText(f"[{((eval(self.width_text.text()) - eval(self.centre_text.text())[0])) + 0.1 * eval(self.width_text.text())}, {((eval(self.height_text.text()) - eval(self.centre_text.text())[1])) + 0.1 * eval(self.height_text.text())}]")
         else:
             self.initpos_text.setText("[100,100]")
 
