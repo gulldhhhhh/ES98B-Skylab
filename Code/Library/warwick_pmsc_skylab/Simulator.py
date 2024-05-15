@@ -38,6 +38,17 @@ earth_rotation_s = 1/360 * stellar_day
 
 
 def satellite_forces_simple(altitude, velocity, C_d):
+    """
+    Computes the drag force using a simple atmospheric density model
+
+    Args:
+        altitude (float): the altitude the satellite is above the ground.
+        velocity (list): The [x,y] or [x,y,z] velocity vector of the satellite.
+        C_d (float): The drag coefficient of the satellite
+    
+    Returns:
+        Fd (numpy.ndarray): The drag force experienced by the satellite
+    """
     # Extract coordinates
 
     # Atmospheric density calculation
@@ -54,7 +65,19 @@ def satellite_forces_simple(altitude, velocity, C_d):
 
 
 def satellite_forces_complex(time, position, lat, lon, velocity, altitude, C_d = 2.2):
+    """
+    Computes the drag force using a simple atmospheric density model
 
+    Args:
+        time (datetime.datetime): The current time of the satellite
+        position (list): The [x,y,z] position of the satellite.
+        lat (float): The latitude coordinate of the satellite.
+        lon (float): The longitude coordinate of the satellite.
+        velocity (list): The [x,y,z] velocity vector of the satellite.
+    
+    Returns:
+        Fd (numpy.ndarray): The drag force experienced by the satellite.
+    """
     # Convert position vector to Earth center coordinates
     
     # Obtain atmospheric density using the NRLMSISE-00 model
@@ -77,6 +100,15 @@ def satellite_forces_complex(time, position, lat, lon, velocity, altitude, C_d =
 
 
 def Cart2Spher(positions):
+    """
+    Converts cartesian points into spherical points.
+
+    Args:
+        positions (numpy.ndarray): a single numpy array consisting of points [x,y,z] in cartesian coordinates
+    
+    Returns:
+        sphercoords (numpy.ndarray): a single numpy array consisting of the same points [r,inc,azth] in spherical coordinates
+    """
     sphercoords = np.zeros(positions.shape)
     xy2 = positions[:,0]**2 + positions[:,1]**2
     sphercoords[:,0] = np.sqrt(xy2 + positions[:,2]**2)
@@ -85,41 +117,46 @@ def Cart2Spher(positions):
     return sphercoords
 
 def Spher2Cart(positions):
+    """
+    Converts spherical points into cartesian points.
+
+    Args:
+        positions (numpy.ndarray): a single numpy array consisting of points [r,inc,azth] in spherical coordinates
+    
+    Returns:
+        cartcoords (numpy.ndarray): a single numpy array consisting of the same points [x,y,z] in cartesian coordinates
+    """
     cartcoords = np.zeros(positions.shape)
     cartcoords[:,0] = positions[:,0] * np.sin(positions[:,1]) * np.cos(positions[:,2])
     cartcoords[:,1] = positions[:,0] * np.sin(positions[:,1]) * np.sin(positions[:,2])
     cartcoords[:,2] = positions[:,0] * np.cos(positions[:,1])
     return cartcoords
 
-def Geodetic2Cart(positions):
-    cartcoords = np.zeros(positions.shape)
-    N_phi = radius_equatorial / (np.sqrt(1 - earth_eccentricity_squared*np.sin(positions[:,0])**2))
-    cartcoords[:,0] = (N_phi + positions[:,2]) * np.cos(positions[:,0]) * np.cos(positions[:,1])
-    cartcoords[:,1] = (N_phi + positions[:,2]) * np.cos(positions[:,0]) * np.sin(positions[:,1])
-    cartcoords[:,2] = ((1-earth_eccentricity_squared)*N_phi + positions[:,2]) * np.sin(positions[:,0])
-    return cartcoords
-
-def Cart2Geodetic(positions):
-    geodeticcoords = np.zeros(positions.shape)
-    geodeticcoords[:,1] = np.arctan2(positions[:,1], positions[:,0])
-    k_0 = 1/(1 - earth_eccentricity_squared)
-    k = k_0
-    p = np.sqrt(positions[:,0]**2 + positions[:,1]**2)
-    for i in range(3):
-        ci = ((p**2 + (1-earth_eccentricity_squared) * positions[:,2]**2 * k**2)**(3/2))/ (radius_equatorial * earth_eccentricity_squared)
-        k = 1 + (p**2 + (1-earth_eccentricity_squared)*positions[:,2]**2*k**3)/(ci - p**2)
-    
-    geodeticcoords[:,2] = 1/earth_eccentricity_squared * (1/k - 1/k_0) * np.sqrt(p**2 + positions[:,2]**2 * k **2)
-    geodeticcoords[:,0] = np.arctan2((k * positions[:,2]), p)
-    return geodeticcoords
-
 def Polar2Cart(positions):
+    """
+    Converts polar points into cartesian points.
+
+    Args:
+        positions (numpy.ndarray): a single numpy array consisting of points [r, theta] in polar coordinates
+    
+    Returns:
+        cartcoords (numpy.ndarray): a single numpy array consisting of the same points [x,y] in cartesian coordinates
+    """
     cartcoords = np.zeros(positions.shape)
     cartcoords[:,0] = positions[:,0] * np.cos(positions[:,1])
     cartcoords[:,1] = positions[:,0] * np.sin(positions[:,1])
     return cartcoords
 
 def Cart2Polar(positions):
+    """
+    Converts cartesian points into polar points.
+
+    Args:
+        positions (numpy.ndarray): a single numpy array consisting of points [x,y] in cartesian coordinates
+    
+    Returns:
+        cartcoords (numpy.ndarray): a single numpy array consisting of the same points [r, theta] in polar coordinates
+    """
     polarcoords = np.zeros(positions.shape)
     polarcoords[:,0] = np.sqrt(positions[:,0]**2 + positions[:,1]**2)
     polarcoords[:,1] = np.arctan2(positions[:,1],positions[:,0])
