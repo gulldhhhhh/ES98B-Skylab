@@ -487,14 +487,14 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
         radar_data = pd.read_csv(radar_data_path, names=reading_columns)
         radar_positions = pd.read_csv(radar_positions_path, names=position_columns)
         if reading_type == 'XYZ':
-            num_radars = len(radar_data)
+            num_radars = radar_positions.to_numpy().shape[0]
             measurement_noise = radar_noise / num_radars
             if fixed_earth:
                 data_test = estimate_position_from_radars_3D(radar_positions, radar_data)
             else:
-                num_radars = len(radar_data)
+                num_radars = radar_positions.to_numpy().shape[0]
                 data_test = []
-                moving_radar_positions = np.zeros((len(radar_data),3))
+                moving_radar_positions = np.zeros((num_radars,3))
                 print(moving_radar_positions.shape)
                 radar_positions = radar_positions[['x','y','z']].values
                 for i in range(0, len(moving_radar_positions), num_radars):
@@ -543,13 +543,13 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
         radar_data = pd.read_csv(radar_data_path, names=reading_columns)
         radar_positions = pd.read_csv(radar_positions_path, names=position_columns)
         if reading_type == 'XYZ':
-            num_radars = len(radar_data)
+            num_radars = radar_positions.to_numpy().shape[0]
             measurement_noise = radar_noise / num_radars
             if fixed_earth:
                 data_test = estimate_position_from_radars_3D(radar_positions, radar_data)
             else:
                 data_test = []
-                moving_radar_positions = np.zeros((len(radar_data),3))
+                moving_radar_positions = np.zeros((num_radars,3))
                 print(moving_radar_positions.shape)
                 radar_positions = radar_positions[['x','y','z']].values
                 for i in range(0, len(moving_radar_positions), num_radars):

@@ -379,8 +379,9 @@ class D2_Satellite:
     
     def Gen_TimeStep(self, ell: Ellipse, dt, solver='RK45'):
         """
-        Makes a timestep using some solver
-        """
+        This function defines the general timestepping function, given some solver (by default Runge Kutta 4-5).
+        It takes in as input the ellipse the satellite should orbit around, and the timestep dt.
+       """
         self.altitude, groundpos = self.calcAltitude(ell)
         if self.altitude <=0:
             return
@@ -401,8 +402,9 @@ class D2_Satellite:
     
     def forecast(self, ell: Ellipse, dt=0.1, maxIter = 100000, height_tol = 10000, simple_solver = False, solver = 'RK45'):
         """
-        This function defines the general timestepping function, given some solver (by default Runge Kutta 4-5).
-        It takes in as input the ellipse the satellite should orbit around, and the timestep dt.
+        Runs a timestep algorithm until satellite altitude reaches 0. Adjusting dt changes the step size for the algorithm solver
+        Takes as input an ellipse to orbit around, a timestep dt, a maximum number of iterations, a height tolerance, and what kind of solver to use.
+        The flag simple_solver = True automatically uses forward euler instead of RK45 or another supplied solver.
         """
         self.altitude, groundpos = self.calcAltitude(ell)
         iter = 0
@@ -446,19 +448,20 @@ class D2_Satellite:
 # In[15]:
 
 
-def D2_orbitplotter(poshist, althist, ell1,dt):
-    fig, axs = plt.subplots(1,2)
-    axs.flatten()[0].plot(althist[0::int(1/dt)], label = "Altitude")
-    axs.flatten()[0].set_xlabel("Time (s)")
-    axs.flatten()[0].set_ylabel("Altitude (m)")
-    axs.flatten()[0].set_title("Altitude of Satellite")
-    axs.flatten()[0].legend()
-    ellipse = mplp.Ellipse((ell1.x,ell1.y),ell1.w, ell1.h, angle = ell1.theta, fill=False, color = 'r')
-    axs.flatten()[1].add_patch(ellipse)
-    axs.flatten()[1].plot(poshist[:,0], poshist[:,1], label = "Position")
-    axs.flatten()[1].set_aspect('equal')
-    axs.flatten()[1].set_title("Path of Satellite (2D Projection)")
-    #axs.flatten()[1].legend(loc='upper left')
+# def D2_orbitplotter(poshist, althist, ell1,dt):
+    
+#     fig, axs = plt.subplots(1,2)
+#     axs.flatten()[0].plot(althist[0::int(1/dt)], label = "Altitude")
+#     axs.flatten()[0].set_xlabel("Time (s)")
+#     axs.flatten()[0].set_ylabel("Altitude (m)")
+#     axs.flatten()[0].set_title("Altitude of Satellite")
+#     axs.flatten()[0].legend()
+#     ellipse = mplp.Ellipse((ell1.x,ell1.y),ell1.w, ell1.h, angle = ell1.theta, fill=False, color = 'r')
+#     axs.flatten()[1].add_patch(ellipse)
+#     axs.flatten()[1].plot(poshist[:,0], poshist[:,1], label = "Position")
+#     axs.flatten()[1].set_aspect('equal')
+#     axs.flatten()[1].set_title("Path of Satellite (2D Projection)")
+#     #axs.flatten()[1].legend(loc='upper left')
 
 
 # In[16]:
@@ -472,6 +475,14 @@ def D2_orbitplotter(poshist, althist, ell1,dt):
 
 
 def ellipsoid_formula(x, ellipsoid_radii):
+    """
+    Defines the ellipsoid formula to be used as input later
+
+    Args:
+        x (numpy.ndarray): contains the (x,y,z) position to be plugged into the ellipsoid equation.
+        ellipsoid_radii (numpy.ndarray): contains the (a,b,c) radii of the ellipsoid
+    """
+
     # Determines how far a point is from an ellipsoid's center
     # Ellipsoid equation: ((x - xc) / a)**2 + ((y - yc) / b)**2 + ((z - zc) / c)**2 = 1
     # where (xc, yc, zc) is the ellipsoid center, and (a, b, c) are the radii along x, y, z axes respectively
