@@ -1148,7 +1148,7 @@ class VisualizationWindow(QMainWindow):
         y_positions = pred_positions[2, :]
         self.ax.errorbar(x_positions[1:], y_positions[1:], xerr=x_errors, yerr=y_errors, color='red', linestyle='--', ecolor='lightgray', elinewidth=9, capsize=0, label='Predicted Positions')
 
-        earth = plt.Circle((0, 0), 6371, color='blue', label='Earth')
+        earth = plt.Circle((0, 0), 6371000, color='blue', label='Earth')
         self.ax.add_patch(earth)
 
         # for i in range(len(pred_positions)):
