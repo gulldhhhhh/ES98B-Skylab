@@ -17,6 +17,7 @@ import matplotlib.animation as animation
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.patches as patches
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+from scipy.stats import multivariate_normal
 
 
 # In[10]:
@@ -222,7 +223,7 @@ class Window_2D(QWidget):
 
         self.pred_dt_layout = QHBoxLayout()
         self.pred_dt_layout.addWidget(QLabel("Kalman dt:"))
-        self.pred_dt_text = QLineEdit("1.0")
+        self.pred_dt_text = QLineEdit("10.0")
         self.pred_dt_layout.addWidget(self.pred_dt_text)
 
         self.process_noise_layout = QHBoxLayout()
@@ -546,7 +547,7 @@ class Window_3D(QWidget):
 
         self.pred_dt_layout = QHBoxLayout()
         self.pred_dt_layout.addWidget(QLabel("Kalman dt:"))
-        self.pred_dt_text = QLineEdit("1.0")
+        self.pred_dt_text = QLineEdit("10.0")
         self.pred_dt_layout.addWidget(self.pred_dt_text)
 
         self.process_noise_layout = QHBoxLayout()
@@ -745,7 +746,11 @@ class VisualizationWindow(QMainWindow):
         
         predictor_vals = QHBoxLayout()
         predictor_crash_pos = QLabel()
-        predictor_crash_pos.setText(f"Predictor predicted crash at location: {self.predicted_positions[-1, [0,2,4]]}")
+        if self.model == "3D":
+            crash_pos = self.predicted_positions[-1, [0,2,4]]
+        else:
+            crash_pos = self.predicted_positions[[0,2], -1]
+        predictor_crash_pos.setText(f"Predictor predicted crash at location: {crash_pos}")
         predictor_crash_time = QLabel()
         predictor_crash_time.setText(f"Predictor predicted crash at time:")
         predictor_vals.addWidget(predictor_crash_pos)
@@ -823,16 +828,23 @@ class VisualizationWindow(QMainWindow):
         covariances = self.predicted_cov
 
         self.ax.plot(poshist[:, 0], poshist[:, 1], 'b-', label='Simulated Path')
-        self.ax.plot(pred_positions[:, 0], pred_positions[:, 1], 'r--', label='Predicted Path')
+
+        x_errors = np.sqrt([cov[0, 0] for cov in covariances])  # Square root of variance for x
+        y_errors = np.sqrt([cov[2, 2] for cov in covariances])  # Square root of variance for y
+        
+        x_positions = pred_positions[0, :]
+        y_positions = pred_positions[2, :]
+        self.ax.errorbar(x_positions[1:], y_positions[1:], xerr=x_errors, yerr=y_errors, color='red', linestyle = '--', ecolor='lightgray', elinewidth=9, capsize=0, label='Predicted Positions')
 
         earth = plt.Circle((0, 0), 6371, color='blue', label='Earth')
         self.ax.add_patch(earth)
 
-        for i in range(len(pred_positions)):
-            cov = covariances[i][:2, :2]  
-            ellipse = self.get_error_ellipse_2d(cov, pred_positions[i])
-            self.ax.add_patch(ellipse)
-
+        # for i in range(len(pred_positions)):
+        #     cov = covariances[np.ix_([0, 2], [0, 2])][i]
+        #     ellipse = self.get_error_ellipse_2d(cov, pred_positions[:,i])
+        #     self.ax.add_patch(ellipse)
+        
+        
         self.ax.legend()
         self.ax.grid(True)
         self.ax.set_xlabel('X Coordinate')
@@ -871,11 +883,25 @@ class VisualizationWindow(QMainWindow):
         self.ax.plot(poshist[:, 0], poshist[:, 1], poshist[:, 2], 'b-', label='Simulated Path')
         self.ax.plot(pred_positions[:, 0], pred_positions[:, 1], pred_positions[:, 2], 'r--', label='Predicted Path')
 
+        # Extract the last state and covariance for the heat map
+        x_last = self.predicted_positions[-1][ [0, 2]]
+        P_last = covariances[-1][np.ix_([0, 2], [0, 2])]
 
-        for i in range(len(pred_positions)):
-            cov = covariances[i][:3, :3]
-            x_ellip, y_ellip, z_ellip = self.get_error_ellipsoid_3d(cov, pred_positions[i])
-            self.ax.plot_wireframe(x_ellip, y_ellip, z_ellip, color='r', alpha=0.3)
+        # Generate grid of points for heat map in the XY plane at the last Z position
+        z_last = self.predicted_positions[-1, 4]
+        x_grid, y_grid = np.mgrid[x_last[0]-50:x_last[0]+50:100j, x_last[1]-50:x_last[1]+50:100j]
+        pos = np.dstack((x_grid, y_grid))
+        rv = multivariate_normal(x_last, P_last)
+        # Create a flattened array of Z values
+        z_values = np.full(pos.shape[:-1], z_last)
+        # Use contourf to plot heat map at the last Z position
+        self.ax.contourf(x_grid, y_grid, z_values, rv.pdf(pos), levels=50, cmap='viridis', offset=z_last)
+
+
+        # for i in range(len(pred_positions)):
+        #     cov = covariances[i][np.ix_([0, 2, 4], [0, 2, 4])]
+        #     x_ellip, y_ellip, z_ellip = self.get_error_ellipsoid_3d(cov, pred_positions[i])
+        #     self.ax.plot_wireframe(x_ellip, y_ellip, z_ellip, color='r', alpha=0.3)
         
         self.ax.set_xlabel('X Position')
         self.ax.set_ylabel('Y Position')

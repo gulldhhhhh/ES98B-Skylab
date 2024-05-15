@@ -414,7 +414,7 @@ def plot_trajectory_2D(data_test, filter_type, estimated_states, covariances):
     plt.show()
 
 # Main function to run chosen filter on input data
-def run_filter(filter_type, dimension, visualize=False, dt=1.0, reading_type='XYZ', reading_interval=10, sat_initpos=[0,0,0], initial_time=None, multilateration_number=3, fixed_earth=True, radar_noise=5, process_noise=0.001):
+def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='XYZ', reading_interval=10, sat_initpos=[0,0,0], initial_time=None, multilateration_number=3, fixed_earth=True, radar_noise=5, process_noise=0.001):
     if filter_type == 'ekf' and dimension == '2d':
         reading_columns = ['x', 'y']
         position_columns = ['x', 'y']
