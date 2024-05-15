@@ -174,6 +174,28 @@ def Cart2Polar(positions):
 
 
 class Ellipse:
+    """
+    A class representing an ellipse for orbiting around in 2D.
+
+    Parameters:
+        centre (tuple): Defines the centre of the ellipse
+        width (float): Defines the width of the ellipse
+        height (float): Defines the height of the ellipse
+        theta (float): Defines the angle of rotation of the ellipse
+
+    Attributes:
+        x (float): Contains the x coordinate of the centre of the ellipse
+        y (float): Contains the y coordinate of the centre of the ellipse
+        w (float): Contains the width of the ellipse
+        h (float): Contains the height of the ellipse
+        theta (float): Contains the angle of rotation of the ellipse
+
+    Methods:
+        r(): Defines the rotation matrix used to transform coordinates to a 0-centred ellipse of same width and height.
+        point_at_angle(angle): Finds the position (x,y) of a point on an ellipse given some interior angle.
+        multi_points(locations): Finds the positions of a multiple points on the ellipse given an array of interior angles.
+        closest_point(x,tol,max_iter): Finds the closest point to x on the ellipse for some point x using a Newton Raphson algorithm.
+    """
     def __init__(self, centre, height, width, angle=0):
         self.x, self.y = centre
         self.w = width
@@ -212,7 +234,7 @@ class Ellipse:
     def closest_point(self, x, tol=1e-6, max_iter = 100):
         """
         Given a point outside the ellipse, and finds the point on the ellipse closest to this.
-        It also returns the (smallest) distance between the point and the ellipse.
+        It also returns the (smallest) distance between the point and the ellipse. Does this with Newton Raphson algorithm.
         """
         #First need to project the point to the space where ellipse centred at origin
         #Also, need to initialize the constants
@@ -263,6 +285,36 @@ simple_polar_ellipse = Ellipse((0,0), 2*(radius_polar/1000), 2*(radius_equatoria
 
 
 class D2_Satellite:
+    """
+    A class representing a visualization window for simulation and prediction.
+
+    Parameters:
+        mass (float)
+
+    Attributes:
+    - title (str): The title of the visualization window.
+    - model (str): The model used for prediction.
+    - poshist (list): The history of positions during simulation.
+    - althist (list): The history of altitudes during simulation.
+    - predicted_positions (numpy.ndarray): The predicted positions.
+    - predicted_cov (list): The predicted covariance matrices.
+    - figure (matplotlib.figure.Figure): The figure object for the plot.
+    - canvas (matplotlib.backends.backend_qt5agg.FigureCanvasQTAgg): The canvas for the plot.
+    - toolbar (matplotlib.backends.backend_qt5agg.NavigationToolbar2QT): The toolbar for the plot.
+    - ax (matplotlib.axes._subplots.AxesSubplot): The axes object for the plot.
+    - back_button (PyQt5.QtWidgets.QPushButton): The button to go back to the main window.
+
+    Methods:
+    - initUI(): Initializes the user interface of the visualization window.
+    - eventFilter(source, event): Filters events for the visualization window.
+    - zoom_2d_plot(delta): Zooms the 2D plot.
+    - zoom_3d_plot(delta): Zooms the 3D plot.
+    - go_back(): Closes the visualization window and goes back to the main window.
+    - get_error_ellipse_2d(cov, pos, nsig=1): Calculates the error ellipse for a 2D position.
+    - get_error_ellipsoid_3d(cov, pos, nsig=1): Calculates the error ellipsoid for a 3D position.
+    - draw_2d_plot(): Draws the 2D plot.
+    - draw_3d_plot(): Draws the 3D plot.
+    """
     def __init__(self, mass, dragcoeff, init_position, init_veloc, time, tangential_velocity = False):
         """
         Begin by defining relevant attributes of a satellite, initial poisition,
