@@ -310,7 +310,7 @@ class Window_2D(QWidget):
             width = eval(self.width_text.text())
             height = eval(self.height_text.text())
             maxax = max(width, height)
-            absdist = 1.06 * maxax
+            absdist = 1.06 * maxax/2
             randnum = np.random.random()
             self.initpos_text.setText(f"[{(randnum * absdist):.2f}, {((1-randnum)*absdist):.2f}]")
             #self.initpos_text.setText(f"[{((eval(self.width_text.text()) - eval(self.centre_text.text())[0])) + 0.1 * eval(self.width_text.text())}, {((eval(self.height_text.text()) - eval(self.centre_text.text())[1])) + 0.1 * eval(self.height_text.text())}]")
