@@ -426,7 +426,7 @@ class Window_2D(QWidget):
         simple_solver = self.simple_solver.isChecked()
         simple_radar = self.radiosimple.isChecked()
 
-        self.poshist, self.althist = warwick_pmsc_skylab.Simulator.Simulator_2D(ellipse_parameters, satellite_parameters, radar_parameters, dt = dt, maxIter = maxIter, solver = 'RK45', simple_solver = simple_solver, simple_radar = simple_radar)
+        self.poshist, self.althist = warwick_pmsc_skylab.Simulator.Simulator_2D(ellipse_parameters, satellite_parameters, radar_parameters, dee_t = dt, maxIter = maxIter, solver = 'RK45', simple_solver = simple_solver, simple_radar = simple_radar)
 
         #self.Handoff_2D(self.poshist, self.althist, None, None)
         self.run_predictor()
