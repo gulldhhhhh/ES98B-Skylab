@@ -431,10 +431,12 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
 
         x_est[:, 0] = [data_test.iloc[0]['x'], 0, data_test.iloc[0]['y'], 0]
 
+        num_radars = len(radar_positions)
+        measurement_noise = radar_noise / num_radars
         P = np.diag([10, 1, 10, 1])
         cov_est = []
         Q = np.eye(4) * process_noise
-        R = np.diag([radar_noise, radar_noise])
+        R = np.diag([measurement_noise, measurement_noise])
         for i in range(1, num_steps):
             measurements[:, i] = data_test.iloc[i][['x', 'y']].values
             x_est[:, i], P = extended_kalman_filter(x_est[:, i-1], P, measurements[:, i], Q, R, dt)
@@ -460,9 +462,11 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
         data_test = estimate_position_from_radars_2D(radar_positions, radar_data)
 
         # Constants
+        num_radars = len(radar_positions)
+        measurement_noise = radar_noise / num_radars
         F = np.array([[1, dt, 0, 0], [0, 1, 0, 0], [0, 0, 1, dt], [0, 0, 0, 1]]) # State transition matrix
         H = np.array([[1, 0, 0, 0], [0, 0, 1, 0]]) # Measurement matrix
-        R = np.diag([radar_noise, radar_noise]) # measurement noise 
+        R = np.diag([measurement_noise, measurement_noise]) # measurement noise 
         Q = np.diag([process_noise, process_noise, process_noise, process_noise]) # process noise
         P = np.diag([10, 0, 10, 0]) # Initial state covariance
 
@@ -483,6 +487,8 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
         radar_data = pd.read_csv(radar_data_path, names=reading_columns)
         radar_positions = pd.read_csv(radar_positions_path, names=position_columns)
         if reading_type == 'XYZ':
+            num_radars = len(radar_data)
+            measurement_noise = radar_noise / num_radars
             if fixed_earth:
                 data_test = estimate_position_from_radars_3D(radar_positions, radar_data)
             else:
@@ -496,6 +502,7 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
                     data_test.append(some_pd.to_numpy())
                 data_test = pd.DataFrame(np.array(data_test), columns=["x","y","z"])
         else:
+            measurement_noise = radar_noise / multilateration_number
             data_test = convert_distalt_to_xyz(radar_positions, radar_data, reading_interval, sat_initpos, initial_time, multilateration_number, fixed_earth)
             data_test = pd.DataFrame(data_test, columns=['x','y','z'])
 
@@ -516,7 +523,7 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
             [0, 0, 1, 0, 0, 0],
             [0, 0, 0, 0, 1, 0]
         ])
-        R = np.diag([radar_noise, radar_noise, radar_noise])  # Measurement noise covariance
+        R = np.diag([measurement_noise, measurement_noise, measurement_noise])  # Measurement noise covariance
         Q = np.diag([process_noise, 0, process_noise, 0, process_noise, 0])  # Process noise covariance
         P = np.diag([10, 0, 10, 0, 10, 0])  # Initial state covariance
         predicted_positions, predicted_cov = kalman_filter_3d(data_test, F, H, Q, R, P)
@@ -535,10 +542,11 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
         radar_data = pd.read_csv(radar_data_path, names=reading_columns)
         radar_positions = pd.read_csv(radar_positions_path, names=position_columns)
         if reading_type == 'XYZ':
+            num_radars = len(radar_data)
+            measurement_noise = radar_noise / num_radars
             if fixed_earth:
                 data_test = estimate_position_from_radars_3D(radar_positions, radar_data)
             else:
-                num_radars = len(radar_data)
                 data_test = []
                 moving_radar_positions = np.zeros(len(radar_data))
                 radar_positions = radar_positions[['x','y','z']].values
@@ -548,11 +556,12 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
                     data_test.append(some_pd.to_numpy())
                 data_test = pd.DataFrame(np.array(data_test), columns=["x","y","z"])
         else:
+            measurement_noise = radar_noise / multilateration_number
             data_test = convert_distalt_to_xyz(radar_positions, radar_data, reading_interval, sat_initpos, initial_time, multilateration_number, fixed_earth)
             data_test = pd.DataFrame(data_test, columns=['x','y','z'])
 
         
-        predicted_positions, predicted_cov = ukf_3d(data_test, dt, radar_noise, process_noise)
+        predicted_positions, predicted_cov = ukf_3d(data_test, dt, measurement_noise, process_noise)
         if visualize:
             # Visualization logic based on filter type and dimension
             plot_trajectory_3D(data_test, filter_type, predicted_positions, predicted_cov)
