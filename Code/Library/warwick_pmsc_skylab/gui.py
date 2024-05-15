@@ -471,7 +471,7 @@ class Window_2D(QWidget):
         self.Handoff_2D(self.poshist, self.althist, self.predicted_positions, self.predicted_cov)
 
     def Handoff_2D(self, poshist, althist, predicted_positions, predicted_cov):
-        self.w = VisualizationWindow('2D', poshist, althist, predicted_positions, predicted_cov, self.inittime_text.dateTime().toPyDateTime(), self.dt, eval(self.pred_dt_text.text()))
+        self.w = VisualizationWindow('2D', poshist, althist, predicted_positions, predicted_cov, self.inittime_text.dateTime().toPyDateTime(), self.dt, eval(self.readint_text.text()))
         self.w.show()
         self.close()
 
@@ -844,7 +844,7 @@ class Window_3D(QWidget):
         self.Handoff_3D(self.poshist, self.althist, self.predicted_positions, self.predicted_cov)
 
     def Handoff_3D(self, poshist, althist, predicted_positions, predicted_cov):
-        self.w = VisualizationWindow('3D', poshist, althist, predicted_positions, predicted_cov, self.inittime_text.dateTime().toPyDateTime(), self.dt, eval(self.pred_dt_text.text()))
+        self.w = VisualizationWindow('3D', poshist, althist, predicted_positions, predicted_cov, self.inittime_text.dateTime().toPyDateTime(), self.dt, eval(self.readint_text.text()))
         self.w.show()
         self.close()
 
@@ -946,7 +946,7 @@ class VisualizationWindow(QMainWindow):
     - draw_2d_plot(): Draws the 2D plot.
     - draw_3d_plot(): Draws the 3D plot.
     """
-    def __init__(self, model, poshist, althist, predicted_positions, predicted_cov, init_time, sim_timestep, pred_timestep):
+    def __init__(self, model, poshist, althist, predicted_positions, predicted_cov, init_time, sim_timestep, read_int):
         super().__init__()
         self.title = 'Simulation and Prediction Visualization'
         self.model = model
@@ -956,7 +956,7 @@ class VisualizationWindow(QMainWindow):
         self.predicted_cov = predicted_cov
         self.init_time = init_time
         self.sim_runtime = sim_timestep * (len(poshist)-1)
-        self.pred_runtime = pred_timestep * (len(predicted_positions)-1)
+        self.pred_runtime = read_int * 1/sim_timestep * (len(predicted_positions)-1)
         self.initUI()
 
     def initUI(self):
@@ -1219,10 +1219,10 @@ class VisualizationWindow(QMainWindow):
         # Create a flattened array of Z values
         z_values = np.full(pos.shape[:-1], z_last)
         # Use contourf to plot heat map at the last Z position
-        self.ax.contourf(x_grid, y_grid, z_values, rv.pdf(pos), levels=50, cmap='viridis', offset=z_last)
+        #self.ax.contourf(x_grid, y_grid, z_values, rv.pdf(pos), levels=50, cmap='viridis', offset=z_last)
 
-        for i in range(len(pred_positions)):
-            cov = covariances[i][np.ix_([0, 2, 4], [0, 2, 4])]
+        for i in range(1, len(pred_positions)):
+            cov = covariances[i-1][np.ix_([0, 2, 4], [0, 2, 4])]
             x_ellip, y_ellip, z_ellip = self.get_error_ellipsoid_3d(cov, pred_positions[i])
             self.ax.plot_wireframe(x_ellip, y_ellip, z_ellip, color='r', alpha=0.3)
 
