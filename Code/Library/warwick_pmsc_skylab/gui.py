@@ -15,6 +15,8 @@ from PyQt5.QtCore import Qt, QEvent
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from mpl_toolkits.basemap import Basemap
+import matplotlib.image as mpimg
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar
 import matplotlib.patches as patches
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
@@ -1158,10 +1160,25 @@ class VisualizationWindow(QMainWindow):
         pred_positions = np.array(self.predicted_positions[:, [0, 2, 4]])
         covariances = self.predicted_cov
 
+        # Load the Earth image
+        img = mpimg.imread('world_map.jpg')
+
         fig = plt.figure()
         plt.axis('off')
 
-        self.ax.plot_surface(warwick_pmsc_skylab.Simulator.earth_ellipsoid[0], warwick_pmsc_skylab.Simulator.earth_ellipsoid[1], warwick_pmsc_skylab.Simulator.earth_ellipsoid[2], alpha=0.3)
+        self.ax = fig.add_subplot(111, projection='3d')
+
+        # Create a sphere
+        u = np.linspace(0, 2 * np.pi, 100)
+        v = np.linspace(0, np.pi, 100)
+        x = 6371 * np.outer(np.cos(u), np.sin(v))
+        y = 6371 * np.outer(np.sin(u), np.sin(v))
+        z = 6371 * np.outer(np.ones(np.size(u)), np.cos(v))
+
+        # Plot the Earth image as texture map
+        self.ax.plot_surface(x, y, z, rstride=5, cstride=5, facecolors=img, alpha=0.6)
+
+        # Plot the satellite path and predictions
         line, = self.ax.plot(poshist[:, 0], poshist[:, 1], poshist[:, 2])
 
         self.ax.view_init(elev=0, azim=0)
@@ -1183,20 +1200,6 @@ class VisualizationWindow(QMainWindow):
         self.ax.plot(poshist[:, 0], poshist[:, 1], poshist[:, 2], 'b-', label='Simulated Path')
         self.ax.plot(pred_positions[:, 0], pred_positions[:, 1], pred_positions[:, 2], 'r--', label='Predicted Path')
 
-        # Extract the last state and covariance for the heat map
-        x_last = self.predicted_positions[-1][[0, 2]]
-        P_last = covariances[-1][np.ix_([0, 2], [0, 2])]
-
-        # Generate grid of points for heat map in the XY plane at the last Z position
-        z_last = self.predicted_positions[-1, 4]
-        x_grid, y_grid = np.mgrid[x_last[0] - 50:x_last[0] + 50:100j, x_last[1] - 50:x_last[1] + 50:100j]
-        pos = np.dstack((x_grid, y_grid))
-        rv = multivariate_normal(x_last, P_last)
-        # Create a flattened array of Z values
-        z_values = np.full(pos.shape[:-1], z_last)
-        # Use contourf to plot heat map at the last Z position
-        self.ax.contourf(x_grid, y_grid, z_values, rv.pdf(pos), levels=50, cmap='viridis', offset=z_last)
-
         for i in range(len(pred_positions)):
             cov = covariances[i][np.ix_([0, 2, 4], [0, 2, 4])]
             x_ellip, y_ellip, z_ellip = self.get_error_ellipsoid_3d(cov, pred_positions[i])
@@ -1211,6 +1214,25 @@ class VisualizationWindow(QMainWindow):
         self.canvas.draw()
 
         plt.close()
+
+    def latlon_to_cartesian(self, lat, lon):
+        """
+        Convert latitude and longitude to Cartesian coordinates.
+        
+        Args:
+            lat (float): Latitude in degrees.
+            lon (float): Longitude in degrees.
+            
+        Returns:
+            x, y, z (float): Cartesian coordinates.
+        """
+        R = 6371  # Radius of the Earth in kilometers
+        lat = np.radians(lat)
+        lon = np.radians(lon)
+        x = R * np.cos(lat) * np.cos(lon)
+        y = R * np.cos(lat) * np.sin(lon)
+        z = R * np.sin(lat)
+        return x, y, z
 
 
 def run_GUI(window_class=MainWindow):
