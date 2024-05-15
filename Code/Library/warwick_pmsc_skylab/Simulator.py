@@ -737,23 +737,38 @@ def Ellipse_Array_2D(ell: Ellipse, num_arrays):
 
 def Simulator_2D(ellipse_parameters, satellite_parameters, radar_parameters, dt = 0.1, maxIter = 1000000, solver = 'RK45', simple_solver = False, simple_radar = True):
     """
-    Collecting all of the information to create the ultimate 2D simulator
+    Runs an orbit simulator for a 2D system
 
-    ellipse_parameters: contains the centre, width, height and angle of slant for the ellipse orbited around
+    Args:
+        ellipse_parameters (dictionary): defines the ellipse using the following parameters (in this order):
+            centre (tuple): Contains the (x, y) centre of the ellipse
+            width (float): Contains the width of the ellipse (any units)
+            height (float): Contains the height of the ellipse (any units)
+            angle (float): Contains the angle of slant of the ellipse (radians)
 
-    satellite_parameters: must contain the mass, drag coefficient, initial posiiton, initial velocity, initial time, and tangential_velocity flag of the satellite.
-        -  if the flag tangential_velocity = True, then initial velocity must be a scalar. Otherwise, initial velocity must be a vector.
+        satellite_parameters (dictionary): defines the satellite which orbits around the ellipse using params (in this order):
+            mass (float): Contains the mass of the satellite in kg
+            drag coefficient (float): Contains the drag coefficient of the satellite
+            initial position (list): Contains the [x,y] position of the satellite (any units)
+            initial velocity (list or float): Contains the [x,y] initial velocity of the satellite if tangential_velocity is False, a float corresponding to speed if it is True
+            initial time (DateTime): Contains the datetime of the satellite's initial position
+            tangential_velocity (Bool): Contains a boolean determining wheter or not to use an initial speed or velocity
+        
+        radar_parameters (dictionary): defines the radar station array using the following parameters (in this order):
+            radar_parameter (float or list): If simple_radar flag is True, this should be a scalar. Otherwise, this should be a list of [x,y] coordinates of radar stations.
+            noise_level (float): Contains the percentage of noise we expect to get from radars. Make this small if lots of radar stations are used!
+            reading_interval (float): Contains a number corresponding to how many seconds pass between each radar readings.
 
-    radar_parameters:
-        - if passing the simple_radar = True flag, must contain an integer corresponding to the number of equidistributed radars on the equator
-        - if passing the simple_radar = False flag, must contain an array of xyz coordinates corresponding to radar positions on the earth
-        - No matter the flag, must pass a noise level corresponding to a percentage of noise we expect in the reading
+        dt (float): contains the value for the timestepping algorithm dt = 0.1 is pretty ok at performance
+        maxIter (int): how many iterations the forward step runs. default is 1,000,000. Consider reducing this if you're going to model stable orbits!
+        solver (str): what solver to use for forward stepping the satellite's position
+        simple_solver (Bool): Whether or not to use forward Euler as a method for forward stepping. Recommended to be set to False
+        simple_radar (Bool): A flag whether or not to use equally spaced radar arrays or not (see radar_parameters for required inputs for each flag value)
+
+    Returns: 
+        poshist, althist: two arrays containint the position history and altitude history of the satellite.
     
-    dt: contains the value for the timestepping algorithm dt = 0.1 is pretty ok at performance
-    maxIter: how many iterations the forward step runs. default is 1,000,000. Consider reducing this if you're going to model stable orbits!
-    solver: what solver to use for forward stepping the satellite's position
-    simple_solver: Whether or not to use forward Euler as a method for forward stepping. Recommended to be set to False
-    simple_radar: A flag whether or not to use equally spaced radar arrays or not (see radar_parameters for required inputs for each flag value)
+    
     """
 
     [centre, width, height, angle] = ellipse_parameters.values()
@@ -828,23 +843,33 @@ def Simulator_2D(ellipse_parameters, satellite_parameters, radar_parameters, dt 
 
 def Simulator(satellite_parameters, radar_parameters, dt = 0.1, maxIter = 1000000, solver = 'RK45', kilometers = True, simple_solver = False, drag_type = 'complex', simple_radar = True, rotating_earth = False):
     """
-    Collecting all of the information to create the ultimate 3D simulator
+    Runs an orbit simulator for a 2D system
 
-    satellite_parameters: must contain the mass, drag coefficient, initial posiiton, initial velocity, and initial time of the satellite.
+    Args:
+        satellite_parameters (dictionary): defines the satellite which orbits around the ellipse using params (in this order):
+            mass (float): Contains the mass of the satellite in kg
+            drag coefficient (float): Contains the drag coefficient of the satellite
+            initial position (list): Contains the [x,y,z] position of the satellite (any units)
+            initial velocity (list): Contains the [x,y,z] initial velocity of the satellite.
+            initial time (DateTime): Contains the datetime of the satellite's initial position
+        
+        radar_parameters (dictionary): defines the radar station array using the following parameters (in this order):
+            radar_parameter (float or list): If simple_radar flag is True, this should be a scalar. Otherwise, this should be a list of [x,y] coordinates of radar stations.
+            reading_type(str): Set to "XYZ" to get relative position of satellite to radars in each dimension. Set to "DistAlt" for radars to only calculate the distance and altitude angle to a given satellite.
+            noise_level (float): Contains the percentage of noise we expect to get from radars. Make this small if lots of radar stations are used!
+            reading_interval (float): Contains a number corresponding to how many seconds pass between each radar readings.
 
-    radar_parameters:
-        - if passing the simple_radar = True flag, first element must contain an integer corresponding to the number of equidistributed radars on the equator
-        - if passing the simple_radar = False flag, first elementmust contain an array of xyz coordinates corresponding to radar positions on the earth
-        - No matter the flag, must pass a noise level corresponding to a percentage of noise we expect in the reading
-        - reading_interval specifies the interval (in seconds) between successive readings
-    
-    dt: contains the value for the timestepping algorithm dt = 0.1 is pretty ok at performance
-    maxIter: how many iterations the forward step runs. default is 1,000,000. Consider reducing this if you're going to model stable orbits!
-    solver: what solver to use for forward stepping the satellite's position
-    kilometers: A flag to use km or m for values (recommended to use km)
-    simple_solver: Whether or not to use forward Euler as a method for forward stepping. Recommended to be set to False
-    drag_type: What kind of atmospheric model to use. "complex" uses nmrlsise00.
-    simple_radar: A flag whether or not to use Equatorial radar arrays or not (see radar_parameters for required inputs for each flag value)
+        dt (float): contains the value for the timestepping algorithm dt = 0.1 is pretty ok at performance
+        maxIter (int): how many iterations the forward step runs. default is 1,000,000. Consider reducing this if you're going to model stable orbits!
+        solver (str): what solver to use for forward stepping the satellite's position
+        kilometers (Bool): whether we're using kilometers (True) or meters (False) for our measurements
+        simple_solver (Bool): Whether or not to use forward Euler as a method for forward stepping. Recommended to be set to False
+        drag_type (str): whether to use a simple atmospheric model ('simple') or nmrlsise00's complex atmospheric model ('complex')
+        simple_radar (Bool): A flag whether or not to use equally spaced radar arrays or not (see radar_parameters for required inputs for each flag value)
+        rotating_earth (Bool): A flag whter or not to use the fact that the earth rotates.
+
+    Returns: 
+        poshist, althist: two arrays containint the position history and altitude history of the satellite.
     """
     [mass, dragcoeff, init_position, init_veloc, time] = satellite_parameters.values()
     satellite = D3_Satellite(mass, dragcoeff, init_position, init_veloc, time)
