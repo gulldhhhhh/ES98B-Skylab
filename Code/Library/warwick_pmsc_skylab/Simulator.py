@@ -480,7 +480,10 @@ def ellipsoid_formula(x, ellipsoid_radii):
 
     Args:
         x (numpy.ndarray): contains the (x,y,z) position to be plugged into the ellipsoid equation.
-        ellipsoid_radii (numpy.ndarray): contains the (a,b,c) radii of the ellipsoid
+        ellipsoid_radii (numpy.ndarray): contains the [a,b,c] radii of the ellipsoid
+    
+    Returns:
+        distance (float): The distance value (1 means on the ellipse)
     """
 
     # Determines how far a point is from an ellipsoid's center
@@ -494,6 +497,9 @@ def ellipsoid_formula(x, ellipsoid_radii):
 
 
 def point_distance(x, poi):
+    """
+    Defines the distance to a point. Used in minimization algorithm.
+    """
     return np.linalg.norm(poi - x)
 
 
@@ -501,6 +507,10 @@ def point_distance(x, poi):
 
 
 def closest_point_on_ellipsoid(point, ellipsoid_radii, inital_guess = np.array([6378.1,0,0])):
+    """
+    This function finds the closest point on an ellipsoid given a point outside of the ellipsoid.
+    """
+
     # Initial guess for optimization
     initial_guess = np.array([6378.1,0,0])
     
