@@ -238,8 +238,9 @@ class D2_Satellite:
         self.dragcoeff = dragcoeff
         self.position = init_position
         if tangential_velocity == True:
-            angle = np.arctan2(self.position[1],self.position[0])
-            self.velocity = [np.cos(angle) * init_veloc, np.sin(angle) * init_veloc]
+            temp = np.array([-self.position[1],self.position[0]])
+            temp = temp/np.linalg.norm(temp) * init_veloc
+            self.velocity = temp.tolist()
         else:
             self.velocity = init_veloc
         self.poshist = [init_position]
