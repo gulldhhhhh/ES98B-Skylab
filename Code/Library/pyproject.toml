@@ -13,7 +13,7 @@ authors = [
     {name = "Leixin Xu", email = "Leixin.Xu@warwick.ac.uk"},
 ]
 description = "Warwick PMSC Group Project (Skylab Team)"
-dependencies = ['numpy', 'matplotlib', 'scipy','nrlmsise00','PyQt5','pandas','filterpy']
+dependencies = ['numpy', 'matplotlib', 'scipy','nrlmsise00','PyQt5','pandas','filterpy','basemap']
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
