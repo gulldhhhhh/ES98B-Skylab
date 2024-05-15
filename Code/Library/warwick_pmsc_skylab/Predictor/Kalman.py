@@ -309,7 +309,7 @@ def measurement_function(state):
     x, vx, y, vy, z, vz = state
     return [x, y, z]
 
-def ukf_3d(data_test, dt):
+def ukf_3d(data_test, dt, radar_noise, process_noise):
     """
     Performs Unscented Kalman Filtering (UKF) for 3D data.
 
@@ -325,8 +325,8 @@ def ukf_3d(data_test, dt):
     points = MerweScaledSigmaPoints(6, alpha=0.1, beta=2., kappa=1.)
     ukf = UKF(dim_x=6, dim_z=3, fx=state_transition_function, hx=measurement_function, dt=dt, points=points)
     ukf.x = np.array([data_test.iloc[0]['x'], 0, data_test.iloc[0]['y'], 0, data_test.iloc[0]['z'], 0])  # initial state
-    ukf.R = np.diag([85, 85, 85])  # Measurement noise: assuming measurement noise is large
-    ukf.Q = np.eye(6) * 0.001  # Process noise: assuming process noise is small
+    ukf.R = np.diag([radar_noise, radar_noise, radar_noise])  # Measurement noise: assuming measurement noise is large
+    ukf.Q = np.eye(6) * process_noise  # Process noise: assuming process noise is small
 
     xs, Ps = [], []
     for index, row in data_test.iterrows():
@@ -431,14 +431,14 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
 
         x_est[:, 0] = [data_test.iloc[0]['x'], 0, data_test.iloc[0]['y'], 0]
 
-        P = np.diag([100, 10, 100, 10])
+        P = np.diag([10, 1, 10, 1])
         cov_est = []
-        Q = np.diag([0.1, 0.1, 0.1, 0.1]) * 0.001
-        R = np.diag([10, 10])
+        Q = np.eye(4) * process_noise
+        R = np.diag([radar_noise, radar_noise])
         for i in range(1, num_steps):
             measurements[:, i] = data_test.iloc[i][['x', 'y']].values
             x_est[:, i], P = extended_kalman_filter(x_est[:, i-1], P, measurements[:, i], Q, R, dt)
-            # cov_est.append(np.sqrt(np.diag(P)))
+            
             cov_est.append(P)
         predicted_positions = np.array(x_est)
         predicted_cov = np.asarray(cov_est)
@@ -462,9 +462,9 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
         # Constants
         F = np.array([[1, dt, 0, 0], [0, 1, 0, 0], [0, 0, 1, dt], [0, 0, 0, 1]]) # State transition matrix
         H = np.array([[1, 0, 0, 0], [0, 0, 1, 0]]) # Measurement matrix
-        R = np.diag([radar_noise, radar_noise]) # Assuming measurement noise is large
-        Q = np.diag([process_noise, process_noise, process_noise, process_noise]) * 0.001 # Assuming process noise is small
-        P = np.diag([radar_noise, 0, radar_noise, 0]) # Initial state covariance
+        R = np.diag([radar_noise, radar_noise]) # measurement noise 
+        Q = np.diag([process_noise, process_noise, process_noise, process_noise]) # process noise
+        P = np.diag([10, 0, 10, 0]) # Initial state covariance
 
         predicted_positions, predicted_cov = kalman_filter(data_test, F, H, Q, R, P, dt)
         if visualize:
@@ -515,9 +515,9 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
             [0, 0, 1, 0, 0, 0],
             [0, 0, 0, 0, 1, 0]
         ])
-        R = np.diag([5, 5, 5])  # Measurement noise covariance
-        Q = np.diag([0.1, 0, 0.1, 0, 0.1, 0]) * 0.1  # Process noise covariance
-        P = np.diag([10, 1, 10, 1, 10, 1])  # Initial state covariance
+        R = np.diag([radar_noise, radar_noise, radar_noise])  # Measurement noise covariance
+        Q = np.diag([process_noise, 0, process_noise, 0, process_noise, 0])  # Process noise covariance
+        P = np.diag([10, 0, 10, 0, 10, 0])  # Initial state covariance
         predicted_positions, predicted_cov = kalman_filter_3d(data_test, F, H, Q, R, P)
         
         if visualize:
@@ -550,7 +550,7 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
             data_test = pd.DataFrame(data_test, columns=['x','y','z'])
 
         
-        predicted_positions, predicted_cov = ukf_3d(data_test, dt)
+        predicted_positions, predicted_cov = ukf_3d(data_test, dt, radar_noise, process_noise)
         if visualize:
             # Visualization logic based on filter type and dimension
             plot_trajectory_3D(data_test, filter_type, predicted_positions, predicted_cov)
