@@ -956,7 +956,7 @@ class VisualizationWindow(QMainWindow):
         self.predicted_cov = predicted_cov
         self.init_time = init_time
         self.sim_runtime = sim_timestep * (len(poshist)-1)
-        self.pred_runtime = read_int * 1/sim_timestep * (len(predicted_positions)-1)
+        self.pred_runtime = read_int * (len(predicted_positions)-1)
         self.initUI()
 
     def initUI(self):

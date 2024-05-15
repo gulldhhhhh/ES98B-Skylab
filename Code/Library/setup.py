@@ -8,5 +8,4 @@ setup(
     description = "Warwick PMSC Group Project (Skylab Team)",
     classifiers=["Programming Language :: Python :: 3", "License :: OSI Approved :: MIT License", "Operating System :: OS Independent",],
     python_requires='>=3.7',
-    packages=['warwick_pmsc_skylab'],
-    install_requires = ['numpy'])
+    packages=['warwick_pmsc_skylab'])
