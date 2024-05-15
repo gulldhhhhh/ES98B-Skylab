@@ -810,11 +810,11 @@ class Window_3D(QWidget):
             'reading_interval': eval(self.readint_text.text())
         }
         
-        dt = eval(self.steptime_text.text())
+        self.dt = eval(self.steptime_text.text())
         maxIter = eval(self.maxiter_text.text())
         simple_radar = self.radiosimple.isChecked()
 
-        self.poshist, self.althist = warwick_pmsc_skylab.Simulator.Simulator(self.satellite_parameters, self.radar_parameters, dt = dt, maxIter = maxIter, solver = 'RK45', simple_solver = False, simple_radar = simple_radar, rotating_earth=self.rot_earth_flag.isChecked())
+        self.poshist, self.althist = warwick_pmsc_skylab.Simulator.Simulator(self.satellite_parameters, self.radar_parameters, dt = self.dt, maxIter = maxIter, solver = 'RK45', simple_solver = False, simple_radar = simple_radar, rotating_earth=self.rot_earth_flag.isChecked())
 
         self.run_predictor()
     
@@ -841,7 +841,7 @@ class Window_3D(QWidget):
         self.predicted_positions, self.predicted_cov = warwick_pmsc_skylab.Predictor.Kalman.run_filter(filter_type, '3d', dt=eval(self.pred_dt_text.text()), reading_type=self.radar_parameters['reading type'], sat_initpos=self.satellite_parameters['initial position'], initial_time=self.satellite_parameters['time'], multilateration_number=3, fixed_earth=fixed_earth, radar_noise=eval(self.noiselevel_text.text()), process_noise=eval(self.process_noise_text.text()))
 
         self.loading_screen.close()
-        self.Handoff_3D(self.poshist, self.althist, self.predicted_positions, self.predicted_cov)
+        self.Handoff_3D(self.poshist, self.althist, self.predicted_positions, self.predicted_cov, self.inittime_text.dateTime().toPyDateTime(), self.dt, eval(self.pred_dt_text.text()))
 
     def Handoff_3D(self, poshist, althist, predicted_positions, predicted_cov):
         self.w = VisualizationWindow('3D', poshist, althist, predicted_positions, predicted_cov)
@@ -956,7 +956,7 @@ class VisualizationWindow(QMainWindow):
         self.predicted_cov = predicted_cov
         self.init_time = init_time
         self.sim_runtime = sim_timestep * (len(poshist)-1)
-        self.pred_runtime = pred_timestep * (len(poshist)-1)
+        self.pred_runtime = pred_timestep * (len(predicted_positions)-1)
         self.initUI()
 
     def initUI(self):
@@ -992,7 +992,7 @@ class VisualizationWindow(QMainWindow):
         simulator_crash_pos = QLabel()
         simulator_crash_pos.setText(f"Simulator predicted crash at location: {self.poshist[-1]}")
         simulator_crash_time = QLabel()
-        simulator_crash_time.setText(f"Simulator predicted crash at time: {self.init_time + datetime.timedelta(self.sim_runtime)}")
+        simulator_crash_time.setText(f"Simulator predicted crash at time: {self.init_time + datetime.timedelta(0,self.sim_runtime)}")
         simulator_vals.addWidget(simulator_crash_pos)
         simulator_vals.addWidget(simulator_crash_time)
 
@@ -1004,7 +1004,7 @@ class VisualizationWindow(QMainWindow):
             crash_pos = self.predicted_positions[[0, 2], -1]
         predictor_crash_pos.setText(f"Predictor predicted crash at location: {crash_pos}")
         predictor_crash_time = QLabel()
-        predictor_crash_time.setText(f"Predictor predicted crash at time: {self.init_time + datetime.timedelta(self.pred_runtime)}")
+        predictor_crash_time.setText(f"Predictor predicted crash at time: {self.init_time + datetime.timedelta(0,self.pred_runtime)}")
         predictor_vals.addWidget(predictor_crash_pos)
         predictor_vals.addWidget(predictor_crash_time)
 
