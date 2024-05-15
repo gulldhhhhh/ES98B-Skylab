@@ -10,7 +10,9 @@ import warwick_pmsc_skylab.Predictor.Kalman
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.widgets import Slider
-from PyQt5.QtWidgets import QMessageBox, QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QLineEdit, QRadioButton, QGroupBox, QHBoxLayout, QDateTimeEdit, QMainWindow, QCheckBox, QButtonGroup, QTextEdit, QDialog
+from PyQt5.QtWidgets import QMessageBox, QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QLineEdit, QRadioButton, QGroupBox, QHBoxLayout, QDateTimeEdit, QMainWindow, QCheckBox, QButtonGroup, QTextEdit, QDialog, QSlider
+from PyQt5.QtCore import Qt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, NavigationToolbar2QT as NavigationToolbar
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
@@ -806,6 +808,9 @@ class VisualizationWindow(QMainWindow):
         self.canvas = FigureCanvas(self.figure)
         layout.addWidget(self.canvas)
 
+        self.toolbar = NavigationToolbar(self.canvas, self)
+        layout.addWidget(self.toolbar)
+
         val_layout = QVBoxLayout()
 
         simulator_vals = QHBoxLayout()
@@ -837,9 +842,14 @@ class VisualizationWindow(QMainWindow):
         self.back_button.setFixedSize(100,30)
         self.back_button.clicked.connect(self.go_back)
         layout.addWidget(self.back_button)
+
+        zoom_slider = QSlider(Qt.Horizontal)
+        zoom_slider.setMinimum(1)
+        zoom_slider.setMaximum(100)
+        zoom_slider.setValue(50)
+        zoom_slider.valueChanged.connect(self.zoom_plot)
+        layout.addWidget(zoom_slider)
         
-
-
         if self.model == "3D":
             self.ax = self.figure.add_subplot(111, projection='3d')
             self.draw_3d_plot()
@@ -984,6 +994,13 @@ class VisualizationWindow(QMainWindow):
         self.canvas.draw()
 
         plt.close()
+    
+    def zoom_plot(self, value):
+        scale = value / 50.0
+        self.ax.set_xlim3d([self.ax.get_xlim3d()[0] * scale, self.ax.get_xlim3d()[1] * scale])
+        self.ax.set_ylim3d([self.ax.get_ylim3d()[0] * scale, self.ax.get_ylim3d()[1] * scale])
+        self.ax.set_zlim3d([self.ax.get_zlim3d()[0] * scale, self.ax.get_zlim3d()[1] * scale])
+        self.canvas.draw()
 
 def run_GUI(window_class=MainWindow):
     app = 0
