@@ -309,7 +309,7 @@ class D2_Satellite:
         self.poshist.append(new_pos)
         self.time += datetime.timedelta(0,dt)
     
-    def forecast(self, ell: Ellipse, dt=0.001, maxIter = 100000, height_tol = 10000, simple_solver = False, solver = 'RK45'):
+    def forecast(self, ell: Ellipse, dt=0.1, maxIter = 100000, height_tol = 10000, simple_solver = False, solver = 'RK45'):
         """
         Runs the forward euler timestep until our altitude reaches 0. Can adjust dt as seen fit
         To be fixed: breaks when altitude drops below 10km or so.
@@ -736,7 +736,7 @@ def Ellipse_Array_2D(ell: Ellipse, num_arrays):
 # In[32]:
 
 
-def Simulator_2D(ellipse_parameters, satellite_parameters, radar_parameters, dt = 0.1, maxIter = 1000000, solver = 'RK45', simple_solver = False, simple_radar = True):
+def Simulator_2D(ellipse_parameters, satellite_parameters, radar_parameters, dee_t = 0.1, maxIter = 1000000, solver = 'RK45', simple_solver = False, simple_radar = True):
     """
     Runs an orbit simulator for a 2D system
 
@@ -760,7 +760,7 @@ def Simulator_2D(ellipse_parameters, satellite_parameters, radar_parameters, dt 
             noise_level (float): Contains the percentage of noise we expect to get from radars. Make this small if lots of radar stations are used!
             reading_interval (float): Contains a number corresponding to how many seconds pass between each radar readings.
 
-        dt (float): contains the value for the timestepping algorithm dt = 0.1 is pretty ok at performance
+        dee_t (float): contains the value for the timestepping algorithm dee_t = 0.1 is pretty ok at performance
         maxIter (int): how many iterations the forward step runs. default is 1,000,000. Consider reducing this if you're going to model stable orbits!
         solver (str): what solver to use for forward stepping the satellite's position
         simple_solver (Bool): Whether or not to use forward Euler as a method for forward stepping. Recommended to be set to False
@@ -776,7 +776,7 @@ def Simulator_2D(ellipse_parameters, satellite_parameters, radar_parameters, dt 
     ell1 = Ellipse(centre, width, height, angle)
     [mass, dragcoeff, init_position, init_veloc, time, tangential_velocity] = satellite_parameters.values()
     sat1 = D2_Satellite(mass, dragcoeff, init_position, init_veloc, time, tangential_velocity = tangential_velocity)
-    poshist, velochist, althist = sat1.forecast(ell1,dt = dt, maxIter = maxIter, height_tol = 0, simple_solver = simple_solver, solver = solver)
+    poshist, velochist, althist = sat1.forecast(ell1,dt = dee_t, maxIter = maxIter, height_tol = 0, simple_solver = simple_solver, solver = solver)
     pos_collision = poshist[-1]
     total_time = time - sat1.time
     [radar_param, noise_level, reading_interval] = radar_parameters.values()
@@ -790,7 +790,7 @@ def Simulator_2D(ellipse_parameters, satellite_parameters, radar_parameters, dt 
         radar_positions = radar_param
         radars = D2_radar_array(radar_positions)
     
-    noisy_readings = radars.satellite_identify(sat1, noise_level = noise_level)[::int(np.ceil(reading_interval * (1/dt)))]
+    noisy_readings = radars.satellite_identify(sat1, noise_level = noise_level)[::int(np.ceil(reading_interval * (1/dee_t)))]
     #selected_intervals = intervals[]
     
     np.savetxt("Radar_Readings_2D.csv", np.reshape(noisy_readings,(-1,2)), delimiter=",")
@@ -801,7 +801,7 @@ def Simulator_2D(ellipse_parameters, satellite_parameters, radar_parameters, dt 
         "Satellite Mass": mass,
         "Satellite Drag Coefficient": dragcoeff,
         "Initial Time": time.timestamp(),
-        "Satellite Readings Interval": reading_interval * 1/dt,
+        "Satellite Readings Interval": reading_interval,
         "XYZ Collision": pos_collision,
         "Angle of Collision": ang_collision.tolist(),
         "Time of Collision (s since epoch)": sat1.time.timestamp(),
