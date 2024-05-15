@@ -509,10 +509,18 @@ def point_distance(x, poi):
 def closest_point_on_ellipsoid(point, ellipsoid_radii, inital_guess = np.array([6378.1,0,0])):
     """
     This function finds the closest point on an ellipsoid given a point outside of the ellipsoid.
+
+    Args:
+        point (numpy.ndarray): a numpy array of the input point for which we want to find the closest point on the ellipse
+        ellipsoid_radii (numpy.ndarray): a numpy array containing the ellipsoid radii [a,b,c]
+        initial_guess (list): a list containing [x,y,z] coords for the initial guess
+
+    Returns:
+        result.x (numpy.ndarray): contains the closest point on the ellipse to input point x.
     """
 
     # Initial guess for optimization
-    initial_guess = np.array([6378.1,0,0])
+    initial_guess = initial_guess
     
     #Define the objective
     objective = lambda x: point_distance(x, point)
@@ -534,9 +542,33 @@ def closest_point_on_ellipsoid(point, ellipsoid_radii, inital_guess = np.array([
 class D3_Satellite:
     def __init__(self, mass, dragcoeff, init_position, init_veloc, time = datetime.datetime(2009, 6, 21, 8, 3, 20)):
         """
-        Begin by defining relevant attributes of a satellite, initial poisition,
-        and set up arrays to track movement of satellite.
-        """
+        A class representing a satellite orbiting in a 3D space.
+
+        Parameters:
+            mass (float): The weight of the satellite in kilograms.
+            dragcoeff (float): The drag coefficient of the satellite.
+            init_position (list): The [x,y] initial position of the satellite
+            initial_velocity (float or list): either a float corresponding to speed (if tangential_velocity = True), else a list corresponding to initial velocity vector.
+            time (datetime.datetime): The initial time at which orbit simulation begins.
+
+        Attributes:
+            mass (float): The weight of the satellite in kilograms.
+            init_time (time): The initial time of the satellite
+            time (datetime.datetime): The current time (GMT) of the satellite during its orbit.
+            altitude (float): The current altitude of the satellite (in meters).
+            althist (list): The history of the satellite's altitude.
+            dragcoeff (float): The drag coefficient of the satellite.
+            position (list): The current position of the satellite [x,y,z].
+            poshist (list): The position history of the satellite.
+            velohist (list): The velocity history of the satellite.
+
+        Methods:
+            calcAltitude(kilometers): Computes altitude calculations using the ellipsoid closest point function.
+            calcGravAcc(kilometers): Calculates gravitational acceleration of the satellite.
+            calcDrag(drag_type): Given a drag_type, calculates the drag force experienced by the satellite using either uniform density or nmrlsise-00.
+            Gen_TimeStep(ell, dt, dragtype, solver, kilometers): runs a single forward timestep using some solver to predict the next position, velocity and altitude of the satellite.
+            forecast(dt, maxIter, height_tol, simple_solver, solver, drag_type, kilometers): simulates the satellite's orbit using FEtimeStep or Gen_TimeStep, until some height_tol is reached.
+    """
         
         self.mass = mass
         self.init_time = time
