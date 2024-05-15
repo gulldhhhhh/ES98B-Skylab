@@ -1011,9 +1011,11 @@ class VisualizationWindow(QMainWindow):
         covariance_vals = QHBoxLayout()
         final_covariance = QLabel()
         final_covariance.setText(f"Final Covariance: {self.predicted_cov[-1]}")
+        covariance_vals.addWidget(final_covariance)
 
         val_layout.addLayout(simulator_vals)
         val_layout.addLayout(predictor_vals)
+        val_layout.addLayout(covariance_vals)
 
         layout.addLayout(val_layout)
 
