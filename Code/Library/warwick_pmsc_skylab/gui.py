@@ -841,10 +841,10 @@ class Window_3D(QWidget):
         self.predicted_positions, self.predicted_cov = warwick_pmsc_skylab.Predictor.Kalman.run_filter(filter_type, '3d', dt=eval(self.pred_dt_text.text()), reading_type=self.radar_parameters['reading type'], sat_initpos=self.satellite_parameters['initial position'], initial_time=self.satellite_parameters['time'], multilateration_number=3, fixed_earth=fixed_earth, radar_noise=eval(self.noiselevel_text.text()), process_noise=eval(self.process_noise_text.text()))
 
         self.loading_screen.close()
-        self.Handoff_3D(self.poshist, self.althist, self.predicted_positions, self.predicted_cov, self.inittime_text.dateTime().toPyDateTime(), self.dt, eval(self.pred_dt_text.text()))
+        self.Handoff_3D(self.poshist, self.althist, self.predicted_positions, self.predicted_cov)
 
     def Handoff_3D(self, poshist, althist, predicted_positions, predicted_cov):
-        self.w = VisualizationWindow('3D', poshist, althist, predicted_positions, predicted_cov)
+        self.w = VisualizationWindow('3D', poshist, althist, predicted_positions, predicted_cov, self.inittime_text.dateTime().toPyDateTime(), self.dt, eval(self.pred_dt_text.text()))
         self.w.show()
         self.close()
 
@@ -1150,7 +1150,7 @@ class VisualizationWindow(QMainWindow):
         y_positions = pred_positions[2, :]
         self.ax.errorbar(x_positions[1:], y_positions[1:], xerr=x_errors, yerr=y_errors, color='red', linestyle='--', ecolor='lightgray', elinewidth=9, capsize=0, label='Predicted Positions')
 
-        earth = plt.Circle((0, 0), 6371, color='blue', label='Earth')
+        earth = plt.Circle((0, 0), 6371000, color='blue', label='Earth')
         self.ax.add_patch(earth)
 
         # for i in range(len(pred_positions)):
