@@ -786,7 +786,7 @@ class Window_3D(QWidget):
             return
         
 
-        self.loading_screen = LoadingScreen("Running simulator...")
+        self.loading_screen = LoadingScreen("Running simulator... ETA: 30s to 8 minutes")
         self.loading_screen.show()
         QApplication.processEvents()
 
@@ -828,7 +828,7 @@ class Window_3D(QWidget):
         Returns:
             None
         """
-        self.loading_screen.label.setText("Running predictor...")
+        self.loading_screen.label.setText("Running predictor... Should be there soon!")
         QApplication.processEvents()
 
         #print("reached!")
