@@ -286,34 +286,31 @@ simple_polar_ellipse = Ellipse((0,0), 2*(radius_polar/1000), 2*(radius_equatoria
 
 class D2_Satellite:
     """
-    A class representing a visualization window for simulation and prediction.
+    A class representing a satellite orbiting in a 2D plane.
 
     Parameters:
-        mass (float)
+        mass (float): The weight of the satellite in kilograms.
+        dragcoeff (float): The drag coefficient of the satellite.
+        init_position (list): The [x,y] initial position of the satellite
+        initial_velocity (float or list): either a float corresponding to speed (if tangential_velocity = True), else a list corresponding to initial velocity vector.
+        time (datetime.datetime): The initial time at which orbit simulation begins.
+        tangential_velocity (Bool): A flag as to whether or not initial_velocity is a scalar or a vector.
 
     Attributes:
-    - title (str): The title of the visualization window.
-    - model (str): The model used for prediction.
-    - poshist (list): The history of positions during simulation.
-    - althist (list): The history of altitudes during simulation.
-    - predicted_positions (numpy.ndarray): The predicted positions.
-    - predicted_cov (list): The predicted covariance matrices.
-    - figure (matplotlib.figure.Figure): The figure object for the plot.
-    - canvas (matplotlib.backends.backend_qt5agg.FigureCanvasQTAgg): The canvas for the plot.
-    - toolbar (matplotlib.backends.backend_qt5agg.NavigationToolbar2QT): The toolbar for the plot.
-    - ax (matplotlib.axes._subplots.AxesSubplot): The axes object for the plot.
-    - back_button (PyQt5.QtWidgets.QPushButton): The button to go back to the main window.
+        mass (float): The weight of the satellite in kilograms.
+        time (datetime.datetime): The current time (GMT) of the satellite during its orbit.
+        altitude (float): The current altitude of the satellite (in meters).
+        althist (list): The history of the satellite's altitude.
+        dragcoeff (float): The drag coefficient of the satellite.
+        position (list): The current position of the satellite [x,y,z].
 
     Methods:
-    - initUI(): Initializes the user interface of the visualization window.
-    - eventFilter(source, event): Filters events for the visualization window.
-    - zoom_2d_plot(delta): Zooms the 2D plot.
-    - zoom_3d_plot(delta): Zooms the 3D plot.
-    - go_back(): Closes the visualization window and goes back to the main window.
-    - get_error_ellipse_2d(cov, pos, nsig=1): Calculates the error ellipse for a 2D position.
-    - get_error_ellipsoid_3d(cov, pos, nsig=1): Calculates the error ellipsoid for a 3D position.
-    - draw_2d_plot(): Draws the 2D plot.
-    - draw_3d_plot(): Draws the 3D plot.
+        calcAltitude(ell): Given an ellipse, performs an altitude calculation using Newton Raphson.
+        calcGravAcc(ell): Given an ellipse, calculates gravitational acceleration of the satellite.
+        calcDrag(altitude): Given an altitude, calculates the drag force experienced by the satellite.
+        FEtimeStep(ell, dt): runs a single forward euler timestep to predict the next position, velocity, and altitude of the satellite.
+        Gen_TimeStep(ell, dt, solver): runs a single forward timestep using some solver to predict the next position, velocity and altitude of the satellite.
+        forecast(ell, dt, maxIter, height_tol, simple_solver, solver): simulates the satellite's orbit using FEtimeStep or Gen_TimeStep, until some height_tol is reached.
     """
     def __init__(self, mass, dragcoeff, init_position, init_veloc, time, tangential_velocity = False):
         """
@@ -337,8 +334,8 @@ class D2_Satellite:
 
     def calcAltitude(self, ell: Ellipse):
         """
-        Given a satellite and an ellipse, this performs the same calculation as the ellipse
-        But more from a "Sattelite" POV
+        Given a satellite and an ellipse, this performs the same altitude calculation as the ellipse
+        But more from a "Satellite" POV
         """
         altitude, ground_pos = ell.closest_point(self.position)
         return altitude, ground_pos
@@ -381,6 +378,9 @@ class D2_Satellite:
         self.time += datetime.timedelta(0,dt)
     
     def Gen_TimeStep(self, ell: Ellipse, dt, solver='RK45'):
+        """
+        Makes a timestep using some solver
+        """
         self.altitude, groundpos = self.calcAltitude(ell)
         if self.altitude <=0:
             return
@@ -401,8 +401,8 @@ class D2_Satellite:
     
     def forecast(self, ell: Ellipse, dt=0.1, maxIter = 100000, height_tol = 10000, simple_solver = False, solver = 'RK45'):
         """
-        Runs the forward euler timestep until our altitude reaches 0. Can adjust dt as seen fit
-        To be fixed: breaks when altitude drops below 10km or so.
+        This function defines the general timestepping function, given some solver (by default Runge Kutta 4-5).
+        It takes in as input the ellipse the satellite should orbit around, and the timestep dt.
         """
         self.altitude, groundpos = self.calcAltitude(ell)
         iter = 0
