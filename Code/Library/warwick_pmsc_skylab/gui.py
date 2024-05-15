@@ -664,12 +664,8 @@ class Window_3D(QWidget):
         error_dialog.setText(message)
         error_dialog.setWindowTitle("Error")
         error_dialog.exec_()
-        
-    def run_simulator(self):
 
-        if not self.centre_text.text() or not self.width_text.text() or not self.height_text.text() or not self.angle_text.text():
-            self.show_error_message("Please fill in all ellipse parameters.")
-            return
+    def run_simulator(self):
 
         if not self.mass_text.text() or not self.drag_text.text() or not self.initpos_text.text() or not self.initspeed_text.text():
             self.show_error_message("Please fill in all satellite parameters.")
