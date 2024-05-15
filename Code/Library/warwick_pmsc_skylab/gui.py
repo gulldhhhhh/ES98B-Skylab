@@ -1197,7 +1197,7 @@ class VisualizationWindow(QMainWindow):
         # Use contourf to plot heat map at the last Z position
         self.ax.contourf(x_grid, y_grid, z_values, rv.pdf(pos), levels=50, cmap='viridis', offset=z_last)
 
-        for i in range(len(pred_positions)):
+        for i in range(len(pred_positions)-1):
             cov = covariances[i][np.ix_([0, 2, 4], [0, 2, 4])]
             x_ellip, y_ellip, z_ellip = self.get_error_ellipsoid_3d(cov, pred_positions[i])
             self.ax.plot_wireframe(x_ellip, y_ellip, z_ellip, color='r', alpha=0.3)
