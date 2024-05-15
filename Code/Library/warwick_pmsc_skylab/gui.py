@@ -315,7 +315,7 @@ class Window_2D(QWidget):
             maxdim = max(width, height)
             distaway = 1.06 * (maxdim/2)
             randang = np.random.uniform(0,2*np.pi)
-            self.initpos_text.setText(f"[{(np.cos(randang) * distaway):.2f},{(np.sin(randang * distaway)):.2f}]")
+            self.initpos_text.setText(f"[{(np.cos(randang) * distaway):.2f},{(np.sin(randang) * distaway):.2f}]")
 
             #self.initpos_text.setText(f"[{((eval(self.width_text.text()) - eval(self.centre_text.text())[0])) + 0.1 * eval(self.width_text.text())}, {((eval(self.height_text.text()) - eval(self.centre_text.text())[1])) + 0.1 * eval(self.height_text.text())}]")
         else:
