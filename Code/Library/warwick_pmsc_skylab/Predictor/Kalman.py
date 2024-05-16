@@ -151,8 +151,6 @@ def estimate_position_from_radars_3D(radar_positions, radar_readings):
             return dists
 
         initial_guess = np.mean(timestep_readings, axis=0)
-        print("Initial Guess:" initial_guess)
-        print(residuals(initial_guess))
 
         # Least squares optimization
         result = least_squares(residuals, initial_guess)
