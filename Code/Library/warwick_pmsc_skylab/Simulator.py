@@ -701,32 +701,46 @@ earth_ellipsoid = ellipsoid_surface(radius_equatorial//1000, radius_equatorial//
 # In[23]:
 
 
-def Orbit_Plotter_3D(althist, poshist):
-    poshist = np.array(poshist)
-    fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.plot_surface(earth_ellipsoid[0],earth_ellipsoid[1],earth_ellipsoid[2])
-    ax.plot(poshist[:,0],poshist[:,1],poshist[:,2])
+# def Orbit_Plotter_3D(althist, poshist):
+#     poshist = np.array(poshist)
+#     fig = plt.figure()
+#     ax = fig.add_subplot(111, projection='3d')
+#     ax.plot_surface(earth_ellipsoid[0],earth_ellipsoid[1],earth_ellipsoid[2])
+#     ax.plot(poshist[:,0],poshist[:,1],poshist[:,2])
 
-    ax_elevation = plt.axes([0.1,0.02,0.8,0.02])
-    ax_azimuth = plt.axes([0.1,0.05,0.8,0.02])
-    slider_elevation = Slider(ax_elevation, 'Elevation', -180, 180, valinit=30)
-    slider_azimuth = Slider(ax_azimuth, 'Azimuth', -180, 180, valinit=-60)
+#     ax_elevation = plt.axes([0.1,0.02,0.8,0.02])
+#     ax_azimuth = plt.axes([0.1,0.05,0.8,0.02])
+#     slider_elevation = Slider(ax_elevation, 'Elevation', -180, 180, valinit=30)
+#     slider_azimuth = Slider(ax_azimuth, 'Azimuth', -180, 180, valinit=-60)
 
-    def update_view(val):
-        ax.view_init(elev=slider_elevation.val, azim=slider_azimuth.val)
+#     def update_view(val):
+#         ax.view_init(elev=slider_elevation.val, azim=slider_azimuth.val)
 
-    # Register the update function with the sliders
-    slider_elevation.on_changed(update_view)
-    slider_azimuth.on_changed(update_view)
-    plt.show()
-    return fig
+#     # Register the update function with the sliders
+#     slider_elevation.on_changed(update_view)
+#     slider_azimuth.on_changed(update_view)
+#     plt.show()
+#     return fig
 
 
 # In[24]:
 
 
 class D2_radar_array:
+    """
+    A class representing a radar array on the surface of an ellipse
+
+    Parameters:
+        cart_pos (list or numpy.ndarray): A numpy array containing several [x,y] coordinates of radar stations
+
+    Attributes:
+        positions (numpy.ndarray): contains the cartesian coordinates of all the radars in the array
+        numradars (int): represents the total number of radars in the array
+    
+    Methods:
+        general_identify(id_pos): Given an array of positions, finds the relative position to them from each radar on the radar station.
+        satellite_identify(sat, noise_level): Given a satellite object, finds relative position to the satellite's position history for each radar station, and adds gaussian noise.
+    """
     def __init__(self, cart_pos):
         self.positions = np.array(cart_pos)
         self.numradars = np.array(cart_pos).shape[0]
@@ -755,6 +769,21 @@ class D2_radar_array:
 
 
 class D3_radar_array:
+    """
+    A class representing a radar array on the surface of an ellipsoid
+
+    Parameters:
+        cart_pos (list or numpy.ndarray): A numpy array containing several [x,y,z] coordinates of radar stations
+
+    Attributes:
+        positions (numpy.ndarray): contains the cartesian coordinates of all the radars in the array
+        numradars (int): represents the total number of radars in the array
+    
+    Methods:
+        get_realtime(initial_time, current_time): finds the position of the radars after accounting for rotation of the earth
+        general_identify(id_pos): Given an array of positions, finds the relative position to them from each radar on the radar station.
+        satellite_identify(sat, noise_level): Given a satellite object, finds relative position to the satellite's position history for each radar station, and adds gaussian noise.
+    """
     def __init__(self, cart_pos):
         self.positions = cart_pos
         self.numradars = np.array(cart_pos).shape[0]
