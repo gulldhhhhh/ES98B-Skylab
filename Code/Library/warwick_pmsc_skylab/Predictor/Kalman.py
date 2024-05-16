@@ -433,7 +433,7 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
         x_est[:, 0] = [data_test.iloc[0]['x'], 0, data_test.iloc[0]['y'], 0]
 
         num_radars = len(radar_positions)
-        measurement_noise = radar_noise / num_radars
+        measurement_noise = radar_noise
         P = np.diag([10, 1, 10, 1])
         cov_est = []
         Q = np.eye(4) * process_noise
@@ -464,7 +464,7 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
 
         # Constants
         num_radars = len(radar_positions)
-        measurement_noise = radar_noise / num_radars
+        measurement_noise = radar_noise
         F = np.array([[1, dt, 0, 0], [0, 1, 0, 0], [0, 0, 1, dt], [0, 0, 0, 1]]) # State transition matrix
         H = np.array([[1, 0, 0, 0], [0, 0, 1, 0]]) # Measurement matrix
         R = np.diag([measurement_noise, measurement_noise]) # measurement noise 
@@ -489,7 +489,7 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
         radar_positions = pd.read_csv(radar_positions_path, names=position_columns)
         if reading_type == 'XYZ':
             num_radars = radar_positions.to_numpy().shape[0]
-            measurement_noise = radar_noise / num_radars
+            measurement_noise = radar_noise
             if fixed_earth:
                 data_test = estimate_position_from_radars_3D(radar_positions, radar_data)
             else:
@@ -505,7 +505,7 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
                     data_test[i:i+num_radars, :] = some_pd.to_numpy()
                 data_test = pd.DataFrame(data_test, columns=["x","y","z"])
         else:
-            measurement_noise = radar_noise / multilateration_number
+            measurement_noise = radar_noise
             data_test = convert_distalt_to_xyz(radar_positions, radar_data, reading_interval, sat_initpos, initial_time, multilateration_number, fixed_earth)
             data_test = pd.DataFrame(data_test, columns=['x','y','z'])
 
@@ -546,7 +546,7 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
         radar_positions = pd.read_csv(radar_positions_path, names=position_columns)
         if reading_type == 'XYZ':
             num_radars = radar_positions.to_numpy().shape[0]
-            measurement_noise = radar_noise / num_radars
+            measurement_noise = radar_noise
             if fixed_earth:
                 data_test = estimate_position_from_radars_3D(radar_positions, radar_data)
             else:
@@ -561,7 +561,7 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
                 data_test = pd.DataFrame(np.array(data_test), columns=["x","y","z"])
                 print(data_test)
         else:
-            measurement_noise = radar_noise / multilateration_number
+            measurement_noise = radar_noise
             data_test = convert_distalt_to_xyz(radar_positions, radar_data, reading_interval, sat_initpos, initial_time, multilateration_number, fixed_earth)
             data_test = pd.DataFrame(data_test, columns=['x','y','z'])
 
