@@ -481,7 +481,10 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
 
 
     elif filter_type == 'kalman' and dimension == '3d':
-        reading_columns = ['x', 'y', 'z']
+        if reading_type == 'XYZ':
+            reading_columns = ['x', 'y', 'z']
+        else:
+            reading_columns = ['distance','altitude']
         position_columns = ['x', 'y', 'z']
         radar_data_path = 'Radar_Readings.csv'
         radar_positions_path = 'Radar_Positions.csv'
@@ -538,7 +541,10 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
 
 
     elif filter_type == 'ukf' and dimension == '3d':
-        reading_columns = ['x', 'y', 'z']
+        if reading_type == 'XYZ':
+            reading_columns = ['x', 'y', 'z']
+        else:
+            reading_columns = ['distance','altitude']
         position_columns = ['x', 'y', 'z']
         radar_data_path = 'Radar_Readings.csv'
         radar_positions_path = 'Radar_Positions.csv'
