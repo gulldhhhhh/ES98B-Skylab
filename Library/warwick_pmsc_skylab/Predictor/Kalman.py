@@ -3,7 +3,6 @@ import numpy as np
 import pandas as pd
 import warwick_pmsc_skylab
 from scipy.optimize import least_squares
-from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 from filterpy.kalman import UnscentedKalmanFilter as UKF, MerweScaledSigmaPoints
 from mpl_toolkits.mplot3d import Axes3D
@@ -146,17 +145,15 @@ def estimate_position_from_radars_3D(radar_positions, radar_readings):
               Distance: Difference between observed distances and the distances to the guess positions
 
             """
-            predpos = [timestep_readings['x'] + radar_positions['x'], timestep_readings['y'] + radar_positions['y'], timestep_readings['z'] + radar_positions['z']]
-            dists = np.sqrt((predpos[0] - pos[0])**2 + (predpos[1] - pos[1])**2 + (predpos[2] - pos[2])**2)
-            # dists = np.sqrt((timestep_readings['x'] - pos[0])**2 +
-            #                 (timestep_readings['y'] - pos[1])**2 +
-            #                 (timestep_readings['z'] - pos[2])**2)
+            dists = np.sqrt((timestep_readings['x'] - pos[0])**2 +
+                            (timestep_readings['y'] - pos[1])**2 +
+                            (timestep_readings['z'] - pos[2])**2)
             return dists
 
-        initial_guess = np.array(radar_positions.iloc[0] + timestep_readings.iloc[0])
+        initial_guess = np.mean(timestep_readings, axis=0)
 
         # Least squares optimization
-        result = minimize(residuals, initial_guess)
+        result = least_squares(residuals, initial_guess)
         estimated_positions[i, :] = result.x
 
     return pd.DataFrame(estimated_positions, columns=["x","y","z"])

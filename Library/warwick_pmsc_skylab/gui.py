@@ -805,7 +805,7 @@ class Window_3D(QWidget):
             rtype = 'distalt'
         self.radar_parameters = {
             'radar parameter': eval(self.radarparam_text.text()),
-            'reading type': rtype,
+            'reading type': 'XYZ',
             'noise level (%)': eval(self.noiselevel_text.text()),
             'reading_interval': eval(self.readint_text.text())
         }
