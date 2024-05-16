@@ -498,14 +498,14 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
             else:
                 num_radars = radar_positions.to_numpy().shape[0]
                 num_readings = radar_data.to_numpy().shape[0]
-                data_test = data_test = np.zeros((num_readings,3))
+                data_test = data_test = np.zeros((num_readings//num_radars,3))
                 moving_radar_positions = np.zeros((num_radars,3))
                 print(moving_radar_positions.shape)
                 radar_positions = radar_positions[['x','y','z']].values
                 for i in range(0, len(moving_radar_positions), num_radars):
                     moving_radar_positions[i:i+num_radars, :] = get_realtime(radar_positions, initial_time, i//num_radars *reading_interval)
                     some_pd = estimate_position_from_radars_3D(moving_radar_positions[i:i+num_radars], radar_data[i:i+num_radars])
-                    data_test[i:i+num_radars, :] = some_pd.to_numpy()
+                    data_test[i//num_radars, :] = some_pd.to_numpy()
                 data_test = pd.DataFrame(data_test, columns=["x","y","z"])
         else:
             measurement_noise = radar_noise
@@ -557,13 +557,13 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
                 data_test = estimate_position_from_radars_3D(radar_positions, radar_data)
             else:
                 num_readings = radar_data.to_numpy().shape[0]
-                data_test = data_test = np.zeros((num_readings,3))
+                data_test = np.zeros((num_readings//num_radars,3))
                 moving_radar_positions = np.zeros((num_radars,3))
                 radar_positions = radar_positions[['x','y','z']].values
                 for i in range(0, len(moving_radar_positions), num_radars):
                     moving_radar_positions[i:i+num_radars, :] = get_realtime(radar_positions, initial_time, i//num_radars *reading_interval)
                     some_pd = estimate_position_from_radars_3D(moving_radar_positions[i:i+num_radars], radar_data[i:i+num_radars])
-                    data_test[i:i+num_radars,:] = some_pd.to_numpy()
+                    data_test[i//num_radars,:] = some_pd.to_numpy()
                 data_test = pd.DataFrame(np.array(data_test), columns=["x","y","z"])
                 print(data_test)
         else:
