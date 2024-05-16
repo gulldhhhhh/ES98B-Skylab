@@ -506,7 +506,7 @@ def point_distance(x, poi):
 # In[19]:
 
 
-def closest_point_on_ellipsoid(point, ellipsoid_radii, inital_guess = np.array([6378.1,0,0])):
+def closest_point_on_ellipsoid(point, ellipsoid_radii, initial_guess = np.array([6378.1,0,0])):
     """
     This function finds the closest point on an ellipsoid given a point outside of the ellipsoid.
 
