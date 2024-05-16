@@ -151,12 +151,12 @@ def estimate_position_from_radars_3D(radar_positions, radar_readings):
             return dists
 
         initial_guess = np.mean(timestep_readings, axis=0)
-        print(initial_guess)
+        print("Initial Guess:" initial_guess)
         print(residuals(initial_guess))
 
         # Least squares optimization
         result = least_squares(residuals, initial_guess)
-        estimated_positions[i] = result.x
+        estimated_positions[i, :] = result.x
 
     return pd.DataFrame(estimated_positions, columns=["x","y","z"])
 
@@ -503,7 +503,7 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
                 moving_radar_positions = np.zeros((num_radars,3))
                 print(moving_radar_positions.shape)
                 radar_positions = radar_positions[['x','y','z']].values
-                for i in range(0, len(moving_radar_positions), num_radars):
+                for i in range(0, len(num_readings), num_radars):
                     moving_radar_positions[i:i+num_radars, :] = get_realtime(radar_positions, initial_time, i//num_radars *reading_interval)
                     some_pd = estimate_position_from_radars_3D(moving_radar_positions[i:i+num_radars], radar_data[i:i+num_radars])
                     data_test[i//num_radars, :] = some_pd.to_numpy()
@@ -561,7 +561,7 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
                 data_test = np.zeros((num_readings//num_radars,3))
                 moving_radar_positions = np.zeros((num_radars,3))
                 radar_positions = radar_positions[['x','y','z']].values
-                for i in range(0, len(moving_radar_positions), num_radars):
+                for i in range(0, len(num_readings), num_radars):
                     moving_radar_positions[i:i+num_radars, :] = get_realtime(radar_positions, initial_time, i//num_radars *reading_interval)
                     some_pd = estimate_position_from_radars_3D(moving_radar_positions[i:i+num_radars], radar_data[i:i+num_radars])
                     data_test[i//num_radars,:] = some_pd.to_numpy()
