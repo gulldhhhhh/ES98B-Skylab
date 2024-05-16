@@ -563,7 +563,7 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
                     some_pd = estimate_position_from_radars_3D(moving_radar_positions[i:i+num_radars], radar_data[i:i+num_radars])
                     data_test[i//num_radars,:] = some_pd.to_numpy()
                 data_test = pd.DataFrame(np.array(data_test), columns=["x","y","z"])
-                print(data_test)
+                #print(data_test)
         else:
             measurement_noise = radar_noise
             data_test = convert_distalt_to_xyz(radar_positions, radar_data, reading_interval, sat_initpos, initial_time, multilateration_number, fixed_earth)

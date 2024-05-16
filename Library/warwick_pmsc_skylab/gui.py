@@ -423,7 +423,7 @@ class Window_2D(QWidget):
             tempvec = eval(self.initveloc_norm_text.text())
             satellite_parameters["initial velocity"] = [eval(self.initspeed_text.text()) * tempvec[0], eval(self.initspeed_text.text()) * tempvec[1]]
 
-        print(satellite_parameters)
+        #print(satellite_parameters)
         radar_parameters = {
             'radar parameter': eval(self.radarparam_text.text()),
             'noise level (%)': eval(self.noiselevel_text.text()),
@@ -1151,7 +1151,7 @@ class VisualizationWindow(QMainWindow):
     def draw_2d_plot(self):
         poshist = np.array(self.poshist)
         pred_positions = np.array(self.predicted_positions)
-        print(pred_positions.shape)
+        #print(pred_positions.shape)
         covariances = self.predicted_cov
 
         self.ax.plot(poshist[:, 0], poshist[:, 1], 'b-', label='Simulated Path')
