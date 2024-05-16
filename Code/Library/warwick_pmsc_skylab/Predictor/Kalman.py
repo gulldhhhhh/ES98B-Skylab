@@ -498,7 +498,7 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
                 num_radars = radar_positions.to_numpy().shape[0]
                 num_readings = radar_data.to_numpy().shape[0]
                 data_test = data_test = np.zeros((num_readings//num_radars,3))
-                moving_radar_positions = np.zeros((num_radars,3))
+                moving_radar_positions = np.zeros((num_readings,3))
                 radar_positions = radar_positions[['x','y','z']].values
                 for i in range(0, num_readings, num_radars):
                     moving_radar_positions[i:i+num_radars, :] = get_realtime(radar_positions, initial_time, i//num_radars *reading_interval)
@@ -556,7 +556,7 @@ def run_filter(filter_type, dimension, visualize=False, dt=10.0, reading_type='X
             else:
                 num_readings = radar_data.to_numpy().shape[0]
                 data_test = np.zeros((num_readings//num_radars,3))
-                moving_radar_positions = np.zeros((num_radars,3))
+                moving_radar_positions = np.zeros((num_readings,3))
                 radar_positions = radar_positions[['x','y','z']].values
                 for i in range(0, num_readings, num_radars):
                     moving_radar_positions[i:i+num_radars, :] = get_realtime(radar_positions, initial_time, i//num_radars *reading_interval)
